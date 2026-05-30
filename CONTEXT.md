@@ -164,9 +164,11 @@ reading the user's described situation (not hardcoded). Drives the attrition
 streams in the visualisations and is adjustable via the Resilience sliders.
 
 ### Visualizations (all in scope)
-- **Debate Graph** — FRONT DOOR / hero. Force-graph; each node = one Debate,
-  coloured win/lose, sized by award £; centre = "your case". Click a node →
-  that debate's transcript (the two judges arguing).
+- **Debate Graph** — the hero of the **Simulations deep-dive** (`/simulations`),
+  reached by drilling in from the Dashboard (which is the product's front door).
+  Force-graph; each node = one Debate, coloured win/lose, sized by award £;
+  centre = "your case". Click a node → that debate's transcript (the two judges
+  arguing).
 - **Cohort Flow ("100 people like you")** — Sankey splitting a cohort into
   settle / abandon mid-case / lose / win-net-negative / win-net-positive.
 - **Gauntlet Timeline** — Today → Verdict (~months) with draining bars:

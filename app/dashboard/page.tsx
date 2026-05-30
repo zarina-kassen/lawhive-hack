@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Scale } from "lucide-react";
+import Link from "next/link";
+import { Network, Scale } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { SimulationResult } from "@/src/lib/simulation";
 
 type Intake = {
@@ -62,6 +64,13 @@ export default function DashboardPage() {
               ? result.recommendation
               : "This is where your full recommendation — Case Merit, Forecast, Practical Impact and Action Plan — will appear."}
           </p>
+          {result ? (
+            <Button asChild className="mt-4 w-fit">
+              <Link href="/simulations">
+                Open Debate Graph <Network className="size-4" />
+              </Link>
+            </Button>
+          ) : null}
         </div>
 
         {result ? (
