@@ -6,7 +6,6 @@ import {
   Controls,
   Handle,
   MarkerType,
-  MiniMap,
   Position,
   ReactFlow,
   type Edge,
@@ -296,17 +295,6 @@ export default function DebateGraph({ result }: { result: SimulationResult }) {
         >
           <Background color="oklch(0.55 0.015 50)" gap={28} size={1} />
           <Controls showInteractive={false} />
-          <MiniMap
-            pannable
-            zoomable
-            nodeColor={(node) => {
-              if (node.type === "case") return "#181713";
-              if (node.type === "judge") return node.id.endsWith("strict") ? "#991b1b" : "#047857";
-              const debate = result.debates.find((item) => item.id === node.id);
-              const winner = debate ? debateWinner(debate) : "split";
-              return winner === "win" ? "#047857" : winner === "lose" ? "#b91c1c" : "#b45309";
-            }}
-          />
         </ReactFlow>
       </div>
 

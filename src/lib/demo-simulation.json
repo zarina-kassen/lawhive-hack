@@ -53,19 +53,83 @@
       "transcript": [
         {
           "speaker": "strict",
-          "message": "The employer has a clean route if it can prove a genuine restructure and credible selection criteria. Leah's emotional CEO email and covert recordings give Granthorne material to say trust had broken down independently of the grievance."
+          "message": "Begin with the documents the claimant cannot manufacture. Programme \"Compass\" appears in the board minutes from October 2025, was re-affirmed on 28 January 2026 and confirmed in detail on 11 February — all before the grievance outcome. A board-sanctioned reorganisation is the strongest possible footing for an employer."
         },
         {
           "speaker": "lenient",
-          "message": "The timing is too tight to treat as neutral. A sole redundancy two weeks after a grievance, with no scoring matrix disclosed, looks like a predetermined process in the same way the Nice Systems consultation was treated as a sham."
+          "message": "A genuine programme and a genuine dismissal are not the same thing. Kolaniak v Nice Systems had a real redundancy backdrop too, yet the dismissal was unfair because the outcome was settled before consultation began. The question is not whether Compass existed, but whether Leah's selection within it was decided in advance."
         },
         {
           "speaker": "strict",
-          "message": "I would discount heavily for conduct and contributory risk. The recordings may be admissible, but making them covertly and threatening them in an angry CEO email will affect remedy and credibility."
+          "message": "Then test selection on its own terms. Granthorne says the Operations Manager, Network South post was scored against three other leadership post-holders on standard Group criteria, equally weighted. On the Softcat reasoning, where a reasonable process is followed an appeal can cure isolated defects and bring the dismissal within the band."
         },
         {
           "speaker": "lenient",
-          "message": "Those points reduce compensation, not liability. The missing matrix, the pool of one, and the proximity to the protected complaint give Leah a realistic unfair dismissal path."
+          "message": "But Softcat turned on a process the tribunal could actually see. Here the appeal panel reviewed the matrix privately and refused to disclose it to Leah despite a direct request. An appeal that withholds the very document in dispute does not cure unfairness; in Kolaniak that opacity is what condemned the employer."
+        },
+        {
+          "speaker": "strict",
+          "message": "Non-disclosure of a scoring matrix to a candidate is common practice and not, of itself, automatically unfair. The COO's letter of 6 April engages each ground, and a tribunal applying Iceland Frozen Foods asks whether the response fell within the band of reasonable responses, not whether it was perfect."
+        },
+        {
+          "speaker": "lenient",
+          "message": "The band is not a refuge for a pool of one. Williams v Compair Maxam expects fair warning, genuine consultation, objective and verifiable criteria, and a fair pool. Selecting one role out of a team of nine, then declining to evidence the scores, strains every one of those limbs at once."
+        },
+        {
+          "speaker": "strict",
+          "message": "I would not concede the pool point so quickly. If her role was genuinely unique within Network South, the pool can properly be one — uniqueness is a lawful answer, and a tribunal will not substitute its own preferred pool for a reasonable employer's."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Uniqueness is asserted, not shown. And there is a prior failure: no evidence Granthorne searched for suitable alternative employment across a business of this size before confirming her exit. A bare assertion of uniqueness, with no redeployment search, is exactly the gap tribunals seize on."
+        },
+        {
+          "speaker": "strict",
+          "message": "Set against that is her conduct. Recording Daniel Morley covertly breaches clause 16, which the contract flags as potential gross misconduct, and the email to the CEO — \"rotten from the top down\", \"treated with such contempt\" — gives Granthorne a breakdown-of-trust narrative standing independently of the grievance."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Conduct of that kind goes to remedy, not liability. The recordings were defensive and may attract the section 43A protection the contract itself preserves at clause 16.3; the email was sent inside a protected appeal. Neither converts an unfair process into a fair one."
+        },
+        {
+          "speaker": "strict",
+          "message": "It need not convert liability to defeat the claim in practice. If trust and confidence had genuinely broken down, a tribunal may find dismissal within the range for that reason, or at least treat the conduct as a substantial contributory factor under section 123(6)."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Contribution requires culpable conduct that caused or contributed to the dismissal. Granthorne dismissed her for redundancy, not for the recordings or the email — they surfaced as ammunition only afterwards. After-acquired conduct rarely reduces a compensatory award for a redundancy already in train."
+        },
+        {
+          "speaker": "strict",
+          "message": "Even leaving conduct aside, the remedy is heavily exposed to Polkey. If Compass would have removed her role in any event, a tribunal can reduce the compensatory award by the percentage chance she would have been fairly dismissed anyway — here potentially a very large discount."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Polkey only engages once you have conceded the dismissal was unfair, which is the finding that matters at settlement. And the discount cannot be large where the employer never ran a fair process: they cannot prove she would certainly have gone when they never tested it properly."
+        },
+        {
+          "speaker": "strict",
+          "message": "A tribunal can still find a substantial likelihood short of certainty. With a real programme, a scored cohort and a confirmed restructure, a fifty to seventy per cent Polkey reduction is well within reach, and that transforms the economics of any award."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Then layer the ACAS uplift the appeal letter itself concedes — no discrete grievance hearing was convened, contrary to the Code. Section 207A permits an uplift of up to twenty-five per cent on the compensatory award, which pushes back against any Polkey discount."
+        },
+        {
+          "speaker": "strict",
+          "message": "An uplift on a heavily Polkey-reduced and contribution-reduced award may be modest in cash terms. My core position holds: a tribunal could accept the redundancy as genuine and the process as within the band, and dismiss the claim outright."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Could, but the weight of the facts runs the other way. A complaint of sex discrimination, a grievance dismissed without a hearing, consultation opening the same day, a pool of one, and a matrix kept secret — that is not a portrait of a reasonable employer."
+        },
+        {
+          "speaker": "strict",
+          "message": "My vote reflects the genuine prospect that disclosure rescues Granthorne: if the scores are consistent and the role truly unique, the claim fails and the offer looks generous. On balance I would find the dismissal fair."
+        },
+        {
+          "speaker": "lenient",
+          "message": "And mine reflects the evidence as it actually stands today, not the case Granthorne hopes to run. On three years' service, with a pool of one, an undisclosed matrix and a conceded Code breach, this is a live unfair dismissal claim worth far more than one month's pay. I find for Leah."
         }
       ],
       "votes": [
@@ -130,19 +194,83 @@
       "transcript": [
         {
           "speaker": "strict",
-          "message": "The claim is not won by chronology alone. Leah must prove the grievance materially influenced redundancy, not merely that redundancy followed an unpleasant grievance process."
+          "message": "This claim is not won on chronology alone. Fleming v Sodexo is the discipline: even assuming a protected act, Leah must show the grievance materially influenced her selection, not merely that redundancy followed a sour grievance."
         },
         {
           "speaker": "lenient",
-          "message": "The grievance is a protected act and the sequence is unusually compressed. Mentaberry shows that redundancy threats and dismissal after a discrimination complaint can amount to victimisation even when broader discrimination allegations fail."
+          "message": "Mentaberry answers that. Redundancy threats and dismissal following a protected sex-discrimination complaint were held to be victimisation under section 27, though the wider discrimination and equal-pay claims failed. The pattern there is the pattern here."
         },
         {
           "speaker": "strict",
-          "message": "If Granthorne has business records showing restructure need and objective scoring, the causal chain breaks. The failed grievance outcome also gives them a neutral explanation."
+          "message": "Before we reach victimisation, identify the protected act precisely. A grievance only qualifies under section 27 if it alleges a contravention of the Equality Act. We must be sure her January grievance actually asserted sex discrimination, not merely bullying and a sense of being overlooked."
         },
         {
           "speaker": "lenient",
-          "message": "They have not shown Leah the matrix despite requests. A tribunal will notice that evidential gap, particularly where she was the only person affected in a team of nine."
+          "message": "It plainly does. She complained she was repeatedly passed over for promotion in favour of less experienced male colleagues — an allegation of direct sex discrimination in promotion. Raising it in a formal grievance is a textbook protected act, whether or not it is ultimately upheld."
+        },
+        {
+          "speaker": "strict",
+          "message": "Accepted that it can be a protected act. But causation is the battleground, and Granthorne has a documented innocent explanation: the Compass timetable predates the grievance outcome, with board approval in principle on 28 January and detail on 11 February."
+        },
+        {
+          "speaker": "lenient",
+          "message": "The timing still indicts them. The grievance was dismissed on 18 February and the redundancy consultation opened the very same day; the redundancy crystallised in the 4 March letter, two weeks later. A reasonable tribunal can infer that the complaint and the exit are connected."
+        },
+        {
+          "speaker": "strict",
+          "message": "Inference is not proof, and the decision-makers matter. The grievance was against Daniel Morley, but the redundancy was run by Karen Westwood and signed off on appeal by Rebecca McEwan. If the people who selected her were not the person she accused, the chain is harder to forge."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Knowledge travels in an HR function. Westwood concluded the grievance herself on 18 February and began the consultation the same day — she had the complaint squarely in mind. A decision-maker who has just rejected a discrimination grievance is not insulated from a victimisation finding."
+        },
+        {
+          "speaker": "strict",
+          "message": "That cuts to the heart of it: she rejected the grievance on its merits, which gives the employer a neutral narrative. If the grievance was genuinely unfounded and the redundancy genuinely planned, the proximity is coincidence, not causation."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Section 136 does the work she needs. Once she shows facts from which victimisation could be inferred — pool of one, a withheld matrix, days between the events — the burden shifts to Granthorne to prove the protected act played no part whatsoever."
+        },
+        {
+          "speaker": "strict",
+          "message": "The reverse burden is real but not insurmountable. If, on disclosure, the scoring is consistent across the leadership cohort and the programme documents are contemporaneous, Granthorne can discharge it, and Fleming shows tribunals will accept a properly evidenced innocent explanation."
+        },
+        {
+          "speaker": "lenient",
+          "message": "But they have not disclosed, and that is the point. Choosing to keep the matrix confidential at the very moment a discrimination complaint was live is itself a fact from which a tribunal may draw an adverse inference under section 136."
+        },
+        {
+          "speaker": "strict",
+          "message": "There is also the question of remedy route. Even if victimisation is arguable, much of the value sits in the ordinary unfair dismissal claim; the victimisation label may add injury to feelings but not transform liability."
+        },
+        {
+          "speaker": "lenient",
+          "message": "It transforms exposure. Victimisation carries an uncapped compensatory element and a Vento injury-to-feelings award on top, and removes the Polkey ceiling that constrains a pure redundancy claim. That is precisely why characterisation matters."
+        },
+        {
+          "speaker": "strict",
+          "message": "Provided it is made out. My concern is that a tribunal alive to Fleming will not let a claimant convert suspicion and bad optics into a discrimination finding without a genuine evidential thread to causation."
+        },
+        {
+          "speaker": "lenient",
+          "message": "The thread is the sequence plus the secrecy. She raised a sex-discrimination grievance; it was rejected; consultation began that day; she alone of nine was selected; and the scores were withheld when she asked. Tribunals have found victimisation on less."
+        },
+        {
+          "speaker": "strict",
+          "message": "I still place real weight on the prior board approval. If the headcount reduction was fixed before she ever raised the grievance in January, the employer can say the structure, if not the individual scoring, was never about her complaint."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Approval of a programme in the abstract does not explain why she, specifically, was the one of nine chosen immediately after her complaint failed. The abstract plan and the individual selection are different decisions, and it is the second that smells."
+        },
+        {
+          "speaker": "strict",
+          "message": "On the present record I am not persuaded causation is established to the standard a tribunal will require. I would find the victimisation and dismissal claims arguable but ultimately not made out, and vote accordingly."
+        },
+        {
+          "speaker": "lenient",
+          "message": "And I would hold that the protected grievance, the compressed timing, the pool of one and the withheld matrix make victimisation and unfair dismissal realistically arguable. The burden is Granthorne's to disprove, and on this evidence they cannot. I find for Leah."
         }
       ],
       "votes": [
@@ -208,19 +336,83 @@
       "transcript": [
         {
           "speaker": "strict",
-          "message": "I would separate the discrimination narrative from the redundancy procedure. Leah may struggle to prove sex discrimination if the promotion examples are not tightly evidenced."
+          "message": "We should be candid about which claim carries the value. The standalone sex-discrimination case is thin. As in Annunziata, where the tribunal accepted the restructuring explanation and rejected the causal allegation, Leah will struggle without named comparators and contemporaneous evidence."
         },
         {
           "speaker": "lenient",
-          "message": "Agreed on separating issues, but that still leaves a strong ordinary unfair dismissal case. Ms Cap is a close analogue: genuine redundancy can still be unfair where warning, consultation, and pool selection are deficient."
+          "message": "I agree discrimination is the weaker vehicle, but a strong ordinary unfair dismissal case remains. Cap v Socks World is almost on all fours: genuine redundancy, yet dismissal unfair for want of warning, consultation and an unreasonable pool of one."
         },
         {
           "speaker": "strict",
-          "message": "The strongest outcome is probably not a full discrimination win. It is a procedural unfair dismissal finding with Polkey and contributory reductions."
+          "message": "So we converge on liability early. Even on the most employer-friendly reading, the undisclosed matrix and the truncated appeal fall outside the band of reasonable responses. The disagreement between us is quantum, not outcome."
         },
         {
           "speaker": "lenient",
-          "message": "That is still real leverage. With three years' service, a flawed pool of one, and a low one-month offer, the settlement value is above the current offer."
+          "message": "Agreed, and quantum is where I part company with a restrained valuation. Once the pool of one and the absence of transparent consultation are established, the Polkey discount is shallower than the employer hopes."
+        },
+        {
+          "speaker": "strict",
+          "message": "I would still apply a real Polkey reduction. Compass was a genuine, board-approved programme and her role was genuinely in scope; a tribunal may find a substantial chance she would have been fairly dismissed in any event."
+        },
+        {
+          "speaker": "lenient",
+          "message": "A chance, yes, but they cannot prove it, because they never ran a fair process. Where the employer's own failure deprives the tribunal of the evidence, the benefit of that doubt should not fall to the employer."
+        },
+        {
+          "speaker": "strict",
+          "message": "Let us be precise about the heads of loss, because that disciplines the figure. The basic award is modest — she is 34 with three years' service, so roughly three weeks' capped pay. The compensatory award is where the real money sits."
+        },
+        {
+          "speaker": "lenient",
+          "message": "And the compensatory award turns on mitigation and the schedule of loss. An operations manager on GBP 53,400 will not replace that salary instantly; even a few months of lost earnings dwarfs a one-month offer."
+        },
+        {
+          "speaker": "strict",
+          "message": "Subject to credit for any notice pay received, and subject to her duty to mitigate. If she finds comparable work quickly, the compensatory award compresses sharply regardless of how unfair the process was."
+        },
+        {
+          "speaker": "lenient",
+          "message": "True, but the offer must be judged against the realistic range, not the best employer outcome. Even a conservative schedule — three to six months' net loss, basic award, loss of statutory rights — sits well above GBP 4,450."
+        },
+        {
+          "speaker": "strict",
+          "message": "I accept that. My restraint is about the top of the range, not the bottom. I would not promise her a discrimination injury-to-feelings award she may never secure, because on Annunziata that strand is fragile."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Nor would I rest the value on it. The injury-to-feelings element is upside, not the core; the core is a sound procedural unfair dismissal with a credible schedule of loss. We agree the discrimination claim is the garnish."
+        },
+        {
+          "speaker": "strict",
+          "message": "There is also the ACAS uplift to factor, and here I am with you. The appeal letter concedes no discrete grievance hearing was held, contrary to paragraphs 33 to 46 of the Code, which opens the door to an uplift of up to twenty-five per cent."
+        },
+        {
+          "speaker": "lenient",
+          "message": "That uplift is precisely what offsets the Polkey discount you favour. One pulls the figure down for the redundancy that might have happened; the other pushes it up for the grievance handled unlawfully. Netted out, the value is solidly above the offer."
+        },
+        {
+          "speaker": "strict",
+          "message": "We should not overstate certainty, though. Polkey and uplift are both discretionary and fact-sensitive; a cautious tribunal could land lower than either of us projects, which is why my figure is the conservative anchor."
+        },
+        {
+          "speaker": "lenient",
+          "message": "And mine is the realistic mid-point, not the ceiling. The honest range for this case is broad, but its floor is comfortably north of one month's salary, and that is the only comparison that matters when she decides on settlement."
+        },
+        {
+          "speaker": "strict",
+          "message": "On that we are fully aligned. The offer of GBP 4,450 is not a serious reflection of even my restrained valuation, let alone yours."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Which is the practical takeaway: she should counter from a documented schedule of loss rather than accept. Two judges of different temperaments both find the dismissal unfair — that itself is leverage."
+        },
+        {
+          "speaker": "strict",
+          "message": "I hold a restrained figure: unfairness found, but with a meaningful Polkey reduction reflecting a real programme and a role genuinely in scope. Even so, it beats the offer."
+        },
+        {
+          "speaker": "lenient",
+          "message": "And I hold a higher figure for the identical liability finding, with the ACAS uplift and a fuller schedule of loss. Either way, both of us find for Leah — the only argument left is how much."
         }
       ],
       "votes": [
@@ -287,19 +479,83 @@
       "transcript": [
         {
           "speaker": "strict",
-          "message": "A tribunal can accept a pool of one if the role is genuinely unique. Leah's title as operations manager may let Granthorne say her role alone disappeared."
+          "message": "A pool of one is lawful where the role is genuinely unique. Cooper v Cranswick is the caution: the tribunal dismissed the unfair-redundancy claim because the employer showed a real redundancy and stayed within the band on pool and selection."
         },
         {
           "speaker": "lenient",
-          "message": "But the team of nine matters. Without the scoring matrix, the tribunal cannot test whether the pool, criteria, and appeal were genuinely neutral."
+          "message": "But Cranswick had a process the tribunal could inspect. Here the team of nine matters precisely because the pool cannot be tested — the scoring matrix was withheld at appeal. Goble v FEAT shows what follows when a process turns non-neutral after a complaint."
         },
         {
           "speaker": "strict",
-          "message": "I would also be cautious about valuing sex discrimination highly. The promotion history may be background unless she can name comparators and decisions."
+          "message": "Start with whether the pool was reasonable, not whether it was disclosed. If the Operations Manager, Network South role was structurally unique under Compass, an employer is entitled to a pool of one, and the tribunal must not impose its own preferred pool."
         },
         {
           "speaker": "lenient",
-          "message": "The better valuation is unfair dismissal plus victimisation pressure. FEAT shows tribunals react strongly where process becomes non-neutral after complaints."
+          "message": "The appeal letter undercuts that. McEwan says Leah was scored against \"three other post-holders within the leadership cohort\". If there were genuinely comparable post-holders to score her against, the pool was not one of one — it was a selection from several, and selection demands transparency."
+        },
+        {
+          "speaker": "strict",
+          "message": "That may simply mean she was benchmarked, not pooled. Employers often sense-check a unique role against peers without those peers being at risk. A benchmarking exercise does not convert a genuine pool of one into a wider pool."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Then the distinction must be evidenced, and it is not. Whether they call it a pool or a benchmark, they applied a scored comparison and then refused to show it. That is the FEAT pattern — a process that becomes opaque exactly when a complainant needs to see it."
+        },
+        {
+          "speaker": "strict",
+          "message": "On the criteria themselves, McEwan records the standard Group factors — skills, experience, performance, conduct — equally weighted. Those are objective and verifiable on their face, which is what Compair Maxam asks for."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Objective on their face, untested in fact. \"Conduct\" as a scored criterion is the danger: it is the obvious route by which the covert recordings, the CEO email, or the grievance itself could have depressed her score. Without the matrix we cannot exclude that."
+        },
+        {
+          "speaker": "strict",
+          "message": "Now to valuation, where the lenient view overreaches. The discrimination strand is background unless Leah can name the comparators and the promotion decisions. Injury-to-feelings awards follow proven discrimination, not a general sense of unfair treatment."
+        },
+        {
+          "speaker": "lenient",
+          "message": "The value is not a freestanding discrimination award — it is unfair dismissal coloured by victimisation pressure, which is where FEAT bites. A withheld matrix, a failed appeal and a protected complaint two weeks earlier read as a non-neutral process."
+        },
+        {
+          "speaker": "strict",
+          "message": "If you are pricing in victimisation, you are pricing in a finding that has not been made. Strip it out and you are left with an ordinary unfair dismissal heavily exposed to Polkey — a far more modest figure than GBP 31,000."
+        },
+        {
+          "speaker": "lenient",
+          "message": "I am pricing the risk, which is how settlement works. The realistic ceiling is high precisely because, if victimisation is found, the cap falls away and a Vento award is added. A defendant must value that downside even at a probability."
+        },
+        {
+          "speaker": "strict",
+          "message": "A defendant must also weight the chance of outright dismissal. If, on disclosure, the role was genuinely unique and the scores defensible, Cranswick controls, liability falls away, and the inflated figure with it."
+        },
+        {
+          "speaker": "lenient",
+          "message": "That is the employer's gamble, and they have worsened their own odds by not disclosing when they could. A tribunal tends to read late or absent disclosure against the party who controls the document."
+        },
+        {
+          "speaker": "strict",
+          "message": "There is also her duty to mitigate, which the higher valuation glosses over. A capable operations manager should re-enter the market; a long period of assumed loss is not realistic and would not be awarded."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Mitigation reduces the earnings line, agreed, but it does nothing to an injury-to-feelings award or to the uplift for the conceded grievance-procedure breach. Those heads survive a quick return to work."
+        },
+        {
+          "speaker": "strict",
+          "message": "My hesitation throughout is proof. The lenient valuation assumes the worst of Granthorne on every contested point — pool, scoring, motive — and a tribunal may not."
+        },
+        {
+          "speaker": "lenient",
+          "message": "And my valuation reflects that an employer who withholds its own evidence usually loses the contested points. On the present record, the refusal to show the scoring and the rushed appeal create a serious risk the whole process is found non-neutral."
+        },
+        {
+          "speaker": "strict",
+          "message": "On balance I would find that, if the role was genuinely removed and selection was role-based, the pool-of-one challenge fails and the claim with it. That is my vote."
+        },
+        {
+          "speaker": "lenient",
+          "message": "And I would find the non-neutral process and the withheld matrix create a serious risk of a victimisation-coloured unfair dismissal, valued well above the offer. I find for Leah."
         }
       ],
       "votes": [
@@ -363,19 +619,83 @@
       "transcript": [
         {
           "speaker": "strict",
-          "message": "The FY25/26 STIP is vulnerable. Clause 8.3 says no bonus if under notice on the payment date, and Yousef shows tribunals will enforce notice-date exclusions where the scheme is clear."
+          "message": "Start with the contract. Clause 8.3 is unambiguous — no STIP if you have given or received notice on the date payment falls due — and Schedule 2 repeats it. Yousef v ORE Catapult enforced exactly that kind of notice-date exclusion in a discretionary scheme."
         },
         {
           "speaker": "lenient",
-          "message": "But Granthorne paid the STIP on 27 March after notice was already given. That creates a waiver or estoppel argument, and any clawback from final pay needs clear contractual authority."
+          "message": "Except Granthorne paid it. GBP 5,340 landed in the 27 March payslip, three weeks after notice was served on 4 March. Payment with knowledge of the forfeiture condition is the classic foundation for waiver or estoppel."
         },
         {
           "speaker": "strict",
-          "message": "The March 2027 bonus is much weaker. Leah will not be employed at the payment date, and future discretionary or conditional bonuses are hard to recover."
+          "message": "Payment through payroll is not necessarily an informed waiver. Payroll runs on autopilot; a BACS credit is at least as consistent with an administrative overpayment as with a considered decision to disapply clause 8.3."
         },
         {
           "speaker": "lenient",
-          "message": "I would separate them: defend the paid GBP 5,340 strongly, discount the future GBP 8,010 heavily, and use both as structured settlement levers rather than headline tribunal value."
+          "message": "Then the burden is theirs to prove it was a mistake, not a decision. Williamson v PTS holds an employer to the terms it actually operated where it cannot prove a superseding bargain; here the term they operated was payment, in full, after notice."
+        },
+        {
+          "speaker": "strict",
+          "message": "Even if it was deliberate, clause 20 read with Schedule 4(a) expressly authorises recovery of overpayments by deduction from final pay. The real exposure is a GBP 5,340 clawback against her termination pay, not a GBP 5,340 gain."
+        },
+        {
+          "speaker": "lenient",
+          "message": "A deduction of wages already properly paid is itself actionable. If the payment was due — or if waiver applies — clawing it back is an unlawful deduction under section 13, and the Schedule 4 authority does not reach sums that were not in truth overpaid."
+        },
+        {
+          "speaker": "strict",
+          "message": "That turns on the very question in dispute: was it \"properly paid\"? On a straight reading of clause 8.3 it was not, because she was under notice. The set-off provisions were drafted precisely for this situation."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Estoppel by representation cuts across the straight reading. They represented, by paying, that the bonus was hers; she may have arranged her affairs on that footing; and it would be unconscionable to reverse it months later when convenient. That is a real defence to the clawback."
+        },
+        {
+          "speaker": "strict",
+          "message": "Estoppel needs an unequivocal representation and detrimental reliance. A payslip line is thin material for both, and a tribunal may find no clear representation and no relevant detriment in simply receiving money."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Yet discretion under clause 8.2 must be exercised rationally and in good faith. Paying in March and then snatching it back during a redundancy dispute looks neither rational nor in good faith, and that colours how a tribunal reads the whole episode."
+        },
+        {
+          "speaker": "strict",
+          "message": "Discretion governs whether to pay, not whether to recover an overpayment. The good-faith duty does not rewrite an express forfeiture condition the employee signed up to."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Move to the future bonus then, where I concede ground. The March 2027 STIP, on-target around GBP 8,000, is much weaker — she will not be employed at the payment date at all, and Yousef bites with full force."
+        },
+        {
+          "speaker": "strict",
+          "message": "It is close to unrecoverable. Discretionary, conditional on active employment, payable nearly a year after she leaves, and well outside any notice period. I would attach almost no settlement value to it."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Agreed, and that candour matters for credibility at the table — we should not inflate a hopeless head. The defensible money is the GBP 5,340 already in her account, not the GBP 8,000 she will never reach."
+        },
+        {
+          "speaker": "strict",
+          "message": "There may also be a notice angle cleaner than the bonus. She is entitled to three months' contractual notice; if any of that is unpaid or mishandled, that is a far more straightforward claim than the STIP argument."
+        },
+        {
+          "speaker": "lenient",
+          "message": "A useful point, and it reinforces the structure: the bonus is a settlement lever, not a headline tribunal figure. You defend the paid sum, you bank the notice entitlement, and you let the clawback risk discipline the employer's number."
+        },
+        {
+          "speaker": "strict",
+          "message": "Provided she does not overplay it. If she litigates the bonus as a centrepiece and loses on clause 8.3, she has spent credibility on the weakest part of an otherwise serious unfair dismissal case."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Which is why I would ring-fence it. Resolve the GBP 5,340 within the global settlement so it is never tested in isolation, and keep the tribunal's attention on the dismissal where the real value lies."
+        },
+        {
+          "speaker": "strict",
+          "message": "My vote reflects the contract as written: clause 8.3 and the notice-date condition give Granthorne a strong answer on the future bonus and a plausible clawback on the paid one."
+        },
+        {
+          "speaker": "lenient",
+          "message": "And mine reflects that the paid GBP 5,340 is defensible against clawback and adds genuine settlement value, even as the next-cycle bonus is discounted to almost nothing. I find for Leah on the sum already paid."
         }
       ],
       "votes": [
