@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       {
-        error: "Please describe the employment dispute in at least 20 characters.",
+        error: "The simulation request was not valid.",
         issues: parsed.error.flatten(),
       },
       { status: 400 },

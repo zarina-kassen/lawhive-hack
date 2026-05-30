@@ -33,6 +33,13 @@ Each case record (fast-pass) carries: `case_number`, claimant, respondent,
 > legal sense (only appellate courts set precedent). We use "Precedent Case"
 > loosely to mean "a prior decided case we reason by analogy from."
 
+### Top Judge Dataset
+The enriched deep-pass dataset for the ten most active substantive judges across
+2025-2026 (`judges_2025-2026_[Enriched + Top 10 Judges].json`). Unlike the
+fast-pass dataset, it includes reasoning profiles, verified outcomes, and real
+award extraction where available, making it the preferred source for Demo
+Simulation judge names, anchor cases, and debate flavor.
+
 ### Judicial Disposition
 The temperament of a judge. **Primary axis = data-backed** from `judges.json`:
 
@@ -89,18 +96,29 @@ One full run of the Orchestrator over the user's situation: N concurrent
 Debates → N verdicts → an aggregate distribution (P(win), P(lose), E[award £]).
 Scope: **N = 5 for the MVP**, architected to scale to **N = 50**.
 
-### Intake
-The first user-facing stage: a **live conversational survey chat** (no hardcoded
-scenario) where the user describes their situation in free text, answers
-follow-up questions, and uploads documents. Intake assembles the case and
-triggers the Simulation.
+For the current demo, Simulation means the **Demo Simulation**: a fixed
+simulation result for the Demo Case, returned without live judge selection or
+LLM calls while preserving the user's sense that a tribunal simulation is
+running.
 
-- **Source of truth = the chat.** The structured situation comes from what the
-  user types/answers.
-- **Uploads = best-effort text extraction.** PDF / .txt / .docx text is pulled
-  and appended to the situation; images get a vision pass only if time allows.
-- The demo is run on **live, rehearsed input** — the system is real end-to-end,
-  nothing is hardcoded.
+### Demo Simulation
+The single hardcoded Simulation result for the Demo Case. It contains fixed
+judge debates, votes, award range, practical impact, and recommendation.
+_Avoid_: live simulation, real-time simulation
+
+### Intake
+The first user-facing stage: a conversational entry point where the user
+describes a dispute and may upload documents. For the current demo, Intake is
+only a trigger: the submitted text and uploads are ignored by the Simulation,
+which always uses the Demo Case.
+
+### Demo Case
+The single hardcoded employment dispute used for the current demo:
+**Case 09 / Leah Miller v Granthorne Logistics**. The case concerns alleged
+retaliatory redundancy after a grievance about bullying and sex discrimination,
+with a live settlement offer, ACAS certificate, covert recordings, and disputed
+bonus treatment.
+_Avoid_: live case, user case
 
 ### Results
 The second user-facing stage: the explanation of a completed Simulation. Results

@@ -65,6 +65,8 @@ export default function IntakePage() {
         createdAt: new Date().toISOString(),
       })
     );
+    window.sessionStorage.removeItem("tribunalNavigator.simulationResult");
+
     router.push("/processing");
   }
 

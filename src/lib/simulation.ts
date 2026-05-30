@@ -1,12 +1,8 @@
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
 import { z } from "zod";
 
-import { getCaseIndex, type EnrichedCaseRecord, type JudgeProfile } from "./judges";
+import demoSimulation from "./demo-simulation.json";
 
-const MODEL_ID = "vertex_ai/claude-opus-4-7";
-const DEFAULT_GATEWAY_URL = "https://ai.hack.lawhive.co.uk";
-const DEBATE_COUNT = 5;
+const DEFAULT_DEMO_SIMULATION_DELAY_MS = 9_000;
 
 const evidenceFileSchema = z.object({
   name: z.string(),
@@ -22,36 +18,21 @@ export const simulationRequestSchema = z
   .transform((request) => ({
     caseContext: (request.description ?? request.caseContext ?? "").trim(),
     evidenceFiles: request.evidenceFiles,
-  }))
-  .pipe(
-    z.object({
-      caseContext: z.string().min(20),
-      evidenceFiles: z.array(evidenceFileSchema),
-    }),
-  );
+  }));
 
 export type SimulationRequest = z.infer<typeof simulationRequestSchema>;
 
-const voteSchema = z.object({
-  outcome: z.enum(["win", "lose"]),
-  awardGbp: z.number().int().nonnegative(),
-  confidence: z.number().min(0).max(1),
-  keyReason: z.string().min(8),
-});
+type Vote = {
+  outcome: "win" | "lose";
+  awardGbp: number;
+  confidence: number;
+  keyReason: string;
+};
 
-const debateSchema = z.object({
-  transcript: z.array(
-    z.object({
-      speaker: z.enum(["strict", "lenient"]),
-      message: z.string().min(20),
-    }),
-  ),
-  strictVote: voteSchema,
-  lenientVote: voteSchema,
-});
-
-type Vote = z.infer<typeof voteSchema>;
-type Transcript = z.infer<typeof debateSchema>["transcript"];
+type Transcript = Array<{
+  speaker: "strict" | "lenient";
+  message: string;
+}>;
 
 type JudgeSummary = {
   name: string;
@@ -66,13 +47,6 @@ type AnchorCase = {
   outcome: string;
   jurisdiction: string[];
   reasoningBlurb: string;
-};
-
-type DebatePair = {
-  strictJudge: JudgeProfile;
-  lenientJudge: JudgeProfile;
-  strictCase: EnrichedCaseRecord;
-  lenientCase: EnrichedCaseRecord;
 };
 
 type SimulationDebate = {
@@ -104,240 +78,26 @@ export type SimulationResult = {
   debates: SimulationDebate[];
 };
 
-type JurisdictionMatch = readonly [jurisdiction: string, keywords: readonly string[]];
+function getDemoSimulationDelayMs(): number {
+  const configuredDelay = Number(process.env.DEMO_SIMULATION_DELAY_MS);
 
-function getGatewayKey(): string {
-  const key =
-    process.env.ANTHROPIC_AUTH_TOKEN ??
-    process.env.ANTHROPIC_API_KEY ??
-    process.env.AI_GATEWAY_API_KEY ??
-    process.env.LAWHIVE_AI_GATEWAY_API_KEY ??
-    process.env.LAWHIVE_AI_GATEWAY_KEY;
-
-  if (!key) {
-    throw new Error("Missing AI gateway key. Set ANTHROPIC_AUTH_TOKEN in .env.");
+  if (Number.isFinite(configuredDelay) && configuredDelay >= 0) {
+    return configuredDelay;
   }
 
-  return key;
+  return DEFAULT_DEMO_SIMULATION_DELAY_MS;
 }
 
-function getGatewayBaseUrl(): string {
-  const baseUrl = process.env.ANTHROPIC_BASE_URL ?? process.env.AI_GATEWAY_BASE_URL ?? DEFAULT_GATEWAY_URL;
-  const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
-
-  // The AI SDK Anthropic provider appends `/messages`; the hackathon gateway serves Anthropic at `/v1/messages`.
-  return normalizedBaseUrl.endsWith("/v1") ? normalizedBaseUrl : `${normalizedBaseUrl}/v1`;
-}
-
-function getModel() {
-  const token = getGatewayKey();
-  const anthropic = createAnthropic({
-    apiKey: token,
-    baseURL: getGatewayBaseUrl(),
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return anthropic(MODEL_ID);
-}
-
-function inferJurisdictions(caseContext: string, availableJurisdictions: string[]): string[] {
-  const text = caseContext.toLowerCase();
-  const matchers: JurisdictionMatch[] = [
-    ["disability-discrimination", ["disability", "reasonable adjustment", "disabled"]],
-    ["race-discrimination", ["race", "racial", "ethnicity"]],
-    ["sex-discrimination", ["sex discrimination", "pregnant", "maternity", "woman", "women"]],
-    ["unfair-dismissal", ["dismiss", "fired", "sacked", "redundant", "redundancy"]],
-    ["unlawful-deduction-from-wages", ["wage", "salary", "pay", "deduction", "unpaid"]],
-    ["breach-of-contract", ["contract", "notice", "bonus", "commission"]],
-    ["public-interest-disclosure", ["whistle", "disclosure", "reported"]],
-  ];
-  const matches = matchers
-    .filter(
-      ([jurisdiction, keywords]) =>
-        availableJurisdictions.includes(jurisdiction) && keywords.some((keyword) => text.includes(keyword)),
-    )
-    .map(([jurisdiction]) => jurisdiction);
-
-  if (matches.length > 0) return matches;
-
-  return ["unfair-dismissal"].filter((jurisdiction) => availableJurisdictions.includes(jurisdiction));
-}
-
-function judgeMatchesJurisdiction(judge: JudgeProfile, jurisdictions: string[]): boolean {
-  return judge.topJurisdictions.some((jurisdiction) => jurisdictions.includes(jurisdiction));
-}
-
-function pickAnchorCase(judge: JudgeProfile, jurisdictions: string[]): EnrichedCaseRecord {
-  return (
-    judge.cases.find((caseRecord) => caseRecord.jurisdiction.some((jurisdiction) => jurisdictions.includes(jurisdiction))) ??
-    judge.cases[0]
-  );
-}
-
-async function selectDebatePairs(caseContext: string): Promise<DebatePair[]> {
-  const index = await getCaseIndex();
-  const jurisdictions = inferJurisdictions(
-    caseContext,
-    index.jurisdictions.map((jurisdiction) => jurisdiction.id),
-  );
-  const jurisdictionJudges = index.judges.filter((judge) => judgeMatchesJurisdiction(judge, jurisdictions));
-  const candidates = jurisdictionJudges.length >= DEBATE_COUNT * 2 ? jurisdictionJudges : index.judges;
-  const strictJudges = candidates.slice(0, DEBATE_COUNT);
-  const lenientJudges = candidates.slice(-DEBATE_COUNT).reverse();
-
-  return strictJudges.map((strictJudge, index) => {
-    const lenientJudge = lenientJudges[index] ?? lenientJudges[0];
-
-    return {
-      strictJudge,
-      lenientJudge,
-      strictCase: pickAnchorCase(strictJudge, jurisdictions),
-      lenientCase: pickAnchorCase(lenientJudge, jurisdictions),
-    };
-  });
-}
-
-function summarizeJudge(judge: JudgeProfile): JudgeSummary {
-  return {
-    name: judge.name,
-    claimantSuccessRateFinal: judge.claimantSuccessRateFinal,
-    nFinalMerits: judge.nFinalMerits,
-  };
-}
-
-function summarizeCase(caseRecord: EnrichedCaseRecord): AnchorCase {
-  return {
-    caseNumber: caseRecord.case_number,
-    claimant: caseRecord.claimant,
-    respondent: caseRecord.respondent,
-    outcome: caseRecord.outcome,
-    jurisdiction: caseRecord.jurisdiction,
-    reasoningBlurb: caseRecord.enrichment.reasoning_blurb,
-  };
-}
-
-function formatCaseForPrompt(label: string, caseRecord: EnrichedCaseRecord): string {
-  return `${label}: ${caseRecord.case_number}, ${caseRecord.claimant ?? "claimant"} v ${
-    caseRecord.respondent ?? "respondent"
-  }, outcome ${caseRecord.outcome}, jurisdictions ${caseRecord.jurisdiction.join(", ")}. Synthetic reasoning note: ${
-    caseRecord.enrichment.reasoning_blurb
-  }`;
-}
-
-function extractJsonObject(text: string): unknown {
-  const fencedJson = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-  const candidate = fencedJson?.[1] ?? text;
-  const start = candidate.indexOf("{");
-  const end = candidate.lastIndexOf("}");
-
-  if (start === -1 || end === -1 || end <= start) {
-    throw new Error("Claude response did not contain a JSON object.");
-  }
-
-  return JSON.parse(candidate.slice(start, end + 1));
-}
-
-async function runDebate(pair: DebatePair, caseContext: string, debateIndex: number): Promise<SimulationDebate> {
-  const prompt = [
-    "You are simulating a UK Employment Tribunal debate for a hackathon product.",
-    "Use the two named real judge profiles and their anchor cases. Do not invent statutes or claim certainty.",
-    "Produce a concise adversarial exchange and two separate final votes.",
-    "Return only valid JSON. Do not include Markdown, prose outside JSON, or fenced code blocks.",
-    "The JSON shape must be: {\"transcript\":[{\"speaker\":\"strict|lenient\",\"message\":\"string\"}],\"strictVote\":{\"outcome\":\"win|lose\",\"awardGbp\":0,\"confidence\":0.5,\"keyReason\":\"string\"},\"lenientVote\":{\"outcome\":\"win|lose\",\"awardGbp\":0,\"confidence\":0.5,\"keyReason\":\"string\"}}.",
-    "",
-    `Employee situation: ${caseContext}`,
-    "",
-    `Strict judge: ${pair.strictJudge.name}. Claimant success rate: ${pair.strictJudge.claimantSuccessRateFinal}.`,
-    formatCaseForPrompt("Strict judge anchor case", pair.strictCase),
-    "",
-    `Lenient judge: ${pair.lenientJudge.name}. Claimant success rate: ${pair.lenientJudge.claimantSuccessRateFinal}.`,
-    formatCaseForPrompt("Lenient judge anchor case", pair.lenientCase),
-  ].join("\n");
-
-  const { text } = await generateText({
-    model: getModel(),
-    maxOutputTokens: 1_500,
-    prompt,
-  });
-  const object = debateSchema.parse(extractJsonObject(text));
-
-  return {
-    id: `debate-${debateIndex + 1}`,
-    strictJudge: summarizeJudge(pair.strictJudge),
-    lenientJudge: summarizeJudge(pair.lenientJudge),
-    anchorCases: [summarizeCase(pair.strictCase), summarizeCase(pair.lenientCase)],
-    transcript: object.transcript,
-    votes: [
-      { ...object.strictVote, judge: pair.strictJudge.name, disposition: "strict" },
-      { ...object.lenientVote, judge: pair.lenientJudge.name, disposition: "lenient" },
-    ],
-    disagreed: object.strictVote.outcome !== object.lenientVote.outcome,
-  };
-}
-
-function median(values: number[]): number {
-  if (values.length === 0) return 0;
-
-  const sorted = [...values].sort((left, right) => left - right);
-  const midpoint = Math.floor(sorted.length / 2);
-
-  return sorted.length % 2 === 0 ? Math.round((sorted[midpoint - 1] + sorted[midpoint]) / 2) : sorted[midpoint];
-}
-
-function calculateAbandonmentRisk(months: number, winProbability: number): "low" | "medium" | "high" {
-  if (months >= 16 && winProbability < 0.55) return "high";
-  if (months >= 12 || winProbability < 0.45) return "medium";
-  return "low";
-}
-
-function anchorMonthsFor(debate: SimulationDebate, pairs: DebatePair[]): number[] {
-  return debate.anchorCases.map((anchorCase) => {
-    const pair = pairs.find(
-      (candidate) =>
-        candidate.strictCase.case_number === anchorCase.caseNumber || candidate.lenientCase.case_number === anchorCase.caseNumber,
-    );
-
-    if (pair?.strictCase.case_number === anchorCase.caseNumber) return pair.strictCase.enrichment.months_to_resolution;
-    if (pair?.lenientCase.case_number === anchorCase.caseNumber) return pair.lenientCase.enrichment.months_to_resolution;
-    return 12;
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
   });
 }
 
 export async function runSimulation(request: SimulationRequest): Promise<SimulationResult> {
-  const pairs = await selectDebatePairs(request.caseContext);
-  const debates = await Promise.all(pairs.map((pair, index) => runDebate(pair, request.caseContext, index)));
-  const votes = debates.flatMap((debate) => debate.votes);
-  const winningVotes = votes.filter((vote) => vote.outcome === "win");
-  const awards = winningVotes.map((vote) => vote.awardGbp).filter((award) => award > 0);
-  const anchorMonths = debates.flatMap((debate) => anchorMonthsFor(debate, pairs));
-  const winProbability = votes.length === 0 ? 0 : winningVotes.length / votes.length;
-  const expectedAwardGbp = median(awards);
-  const typicalMonthsToResolution = median(anchorMonths);
-  const likelyUnrecoverableCostGbp = Math.round(typicalMonthsToResolution * 350);
-  const abandonmentRisk = calculateAbandonmentRisk(typicalMonthsToResolution, winProbability);
-  const netPosition = expectedAwardGbp - likelyUnrecoverableCostGbp;
+  void request;
 
-  return {
-    caseMerit: {
-      winProbability,
-      expectedAwardGbp,
-      awardSpreadGbp: {
-        min: awards.length > 0 ? Math.min(...awards) : 0,
-        median: expectedAwardGbp,
-        max: awards.length > 0 ? Math.max(...awards) : 0,
-      },
-    },
-    practicalImpact: {
-      typicalMonthsToResolution,
-      likelyUnrecoverableCostGbp,
-      abandonmentRisk,
-    },
-    recommendation:
-      netPosition > 0 && winProbability >= 0.55
-        ? "Your legal case appears worth exploring, but treat settlement leverage and evidence quality as the next decision point."
-        : "Be careful about escalating before testing settlement leverage: the expected time, unrecoverable cost, and attrition risk may outweigh the legal upside.",
-    debates,
-  };
+  await delay(getDemoSimulationDelayMs());
+
+  return structuredClone(demoSimulation) as SimulationResult;
 }
