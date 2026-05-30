@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { runSimulation, simulationRequestSchema } from "@/src/lib/simulation";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -18,7 +19,13 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await runSimulation(parsed.data);
+  try {
+    const result = await runSimulation(parsed.data);
 
-  return NextResponse.json(result);
+    return NextResponse.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "The real Opus simulation failed.";
+
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
 }

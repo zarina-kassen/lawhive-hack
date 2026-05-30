@@ -1,6 +1,8 @@
 import { z } from "zod";
+import { generateText } from "ai";
 
 import type { EnrichedCase } from "./enrichment";
+import { getOpusModel } from "./gateway";
 import { formatJurisdiction, getCaseIndex, type JudgeProfile } from "./judges";
 
 export const simulationRequestSchema = z.object({
@@ -131,79 +133,6 @@ function pickJudgePairs(judges: JudgeProfile[], jurisdictions: string[], count: 
   return pairs;
 }
 
-function meritsSignalAdjustment(signals: string[]): number {
-  let adjustment = 0;
-
-  if (signals.includes("raised concerns internally")) adjustment += 0.06;
-  if (signals.includes("has documentary evidence")) adjustment += 0.08;
-  if (signals.includes("possible protected ground")) adjustment += 0.07;
-  if (signals.includes("short service risk")) adjustment -= 0.15;
-
-  return adjustment;
-}
-
-function voteForJudge(
-  judge: JudgeProfile,
-  anchor: EnrichedCase,
-  signals: string[],
-  claimedValueGbp: number | undefined,
-): JudgeVote {
-  const base = judge.summary.claimant_success_rate_final;
-  const anchorPush = anchor.outcome === "dismissed" ? -0.08 : anchor.outcome === "partly_upheld" ? 0.02 : 0.08;
-  const score = clamp(base + anchorPush + meritsSignalAdjustment(signals), 0.05, 0.95);
-  const outcome = score >= 0.5 ? "win" : "lose";
-  const award =
-    outcome === "win"
-      ? Math.round((anchor.enrichment.award_gbp || claimedValueGbp || 6_000) * clamp(score + 0.2, 0.35, 1.1))
-      : 0;
-
-  return {
-    judge: judge.name,
-    outcome,
-    award_gbp: award,
-    confidence: Number(clamp(Math.abs(score - 0.5) + 0.5, 0.52, 0.92).toFixed(2)),
-    key_reason:
-      outcome === "win"
-        ? `${judge.name} gives weight to the claimant-side signals and the analogy to ${anchor.case_number}.`
-        : `${judge.name} treats the evidential/legal threshold as the main weakness, anchored by ${anchor.case_number}.`,
-  };
-}
-
-function debateTranscript(
-  strictJudge: JudgeProfile,
-  lenientJudge: JudgeProfile,
-  strictCase: EnrichedCase,
-  lenientCase: EnrichedCase,
-  jurisdictions: string[],
-  signals: string[],
-): DebateRound[] {
-  const claimLabel = jurisdictions.map(formatJurisdiction).join(" / ");
-  const signalLabel = signals.join(", ");
-
-  return [
-    {
-      speaker: strictJudge.name,
-      disposition: "strict",
-      text: `I would start from ${strictCase.case_number}, where the ${claimLabel} threshold was not lightly assumed. The risk here is proof: ${signalLabel}.`,
-    },
-    {
-      speaker: lenientJudge.name,
-      disposition: "lenient",
-      text: `In ${lenientCase.case_number}, the tribunal looked closely at the practical reality for the worker. Those same facts make this case more claimant-friendly.`,
-    },
-    {
-      speaker: strictJudge.name,
-      disposition: "strict",
-      text: `Even if the account is sympathetic, the claimant still has to prove causation, loss, and timely presentation. I would discount the award for litigation risk.`,
-    },
-    {
-      speaker: lenientJudge.name,
-      disposition: "lenient",
-      text: `The contemporaneous signals matter. If the documents support the narrative, I would be slow to dismiss this as merely workplace unfairness.`,
-    },
-  ];
-}
-
 function buildWorthItVerdict(winProbability: number, netPositionGbp: number, abandonmentRisk: number, months: number): string {
   const legalStrength = winProbability >= 0.6 ? "Likely win" : winProbability >= 0.42 ? "Live case" : "Uphill case";
   const worth = netPositionGbp >= 0 && abandonmentRisk < 0.45 ? "worth exploring" : "probably not worth it without settlement leverage";
@@ -213,31 +142,215 @@ function buildWorthItVerdict(winProbability: number, netPositionGbp: number, aba
   ).toLocaleString()} over ~${months} months with ${Math.round(abandonmentRisk * 100)}% abandonment risk. Worth it? ${worth}.`;
 }
 
+function judgeSystemPrompt(judge: JudgeProfile, anchor: EnrichedCase): string {
+  return [
+    `You are Employment Judge ${judge.name}, simulated from real UK Employment Tribunal metadata.`,
+    `Your judicial disposition is ${judge.disposition}.`,
+    `Your final-merits claimant success rate is ${Math.round(judge.summary.claimant_success_rate_final * 100)}% across ${judge.summary.n_final_merits} final-merits cases.`,
+    `Your top jurisdictions are: ${Object.entries(judge.summary.top_jurisdictions)
+      .slice(0, 6)
+      .map(([jurisdiction, count]) => `${formatJurisdiction(jurisdiction)} (${count})`)
+      .join(", ")}.`,
+    `Anchor precedent case: ${anchor.case_number}, ${anchor.claimant} v ${anchor.respondent}.`,
+    `Anchor case outcome: ${anchor.outcome}. Jurisdictions: ${anchor.jurisdiction.map(formatJurisdiction).join(", ")}.`,
+    `Synthetic anchor reasoning, for hackathon demo only: ${anchor.enrichment.reasoning_blurb}`,
+    "Reason as this judge persona only. Do not mention that you are an AI model.",
+  ].join("\n");
+}
+
+function userCasePrompt(request: SimulationRequest, jurisdictions: string[], signals: string[]): string {
+  return [
+    "Employee narrative:",
+    request.narrative,
+    "",
+    `Detected claim types: ${jurisdictions.map(formatJurisdiction).join(", ")}.`,
+    `Detected signals: ${signals.join(", ")}.`,
+    request.claimedValueGbp ? `Claimant's expected value: £${request.claimedValueGbp.toLocaleString("en-GB")}.` : "",
+    "",
+    "Argue the likely Employment Tribunal outcome from your persona's perspective. Be concrete and concise.",
+  ].join("\n");
+}
+
+async function generateJudgeArgument({
+  judge,
+  anchor,
+  request,
+  jurisdictions,
+  signals,
+  previousArgument,
+}: {
+  judge: JudgeProfile;
+  anchor: EnrichedCase;
+  request: SimulationRequest;
+  jurisdictions: string[];
+  signals: string[];
+  previousArgument?: DebateRound;
+}): Promise<string> {
+  const rebuttalInstruction = previousArgument
+    ? `\n\nYou are replying to ${previousArgument.speaker}'s argument:\n"${previousArgument.text}"\n\nRebut it directly.`
+    : "\n\nOpen the debate.";
+  const { text } = await generateText({
+    model: getOpusModel(),
+    system: judgeSystemPrompt(judge, anchor),
+    prompt: `${userCasePrompt(request, jurisdictions, signals)}${rebuttalInstruction}`,
+    temperature: 0.35,
+    maxOutputTokens: 420,
+  });
+
+  return text.trim();
+}
+
+const voteSchema = z.object({
+  outcome: z.enum(["win", "lose"]),
+  award_gbp: z.number().int().min(0).max(500_000),
+  confidence: z.number().min(0).max(1),
+  key_reason: z.string().min(10).max(1_000),
+});
+
+function parseJsonObject(text: string): unknown {
+  const trimmed = text.trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const candidate = fenced?.[1] ?? trimmed;
+  const start = candidate.indexOf("{");
+  const end = candidate.lastIndexOf("}");
+
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error(`Opus vote did not include a JSON object. Response preview: ${trimmed.slice(0, 220)}`);
+  }
+
+  return JSON.parse(candidate.slice(start, end + 1));
+}
+
+async function generateJudgeVote({
+  judge,
+  anchor,
+  request,
+  jurisdictions,
+  signals,
+  rounds,
+}: {
+  judge: JudgeProfile;
+  anchor: EnrichedCase;
+  request: SimulationRequest;
+  jurisdictions: string[];
+  signals: string[];
+  rounds: DebateRound[];
+}): Promise<JudgeVote> {
+  const { text } = await generateText({
+    model: getOpusModel(),
+    system: judgeSystemPrompt(judge, anchor),
+    prompt: [
+      userCasePrompt(request, jurisdictions, signals),
+      "",
+      "Debate so far:",
+      ...rounds.map((round) => `${round.speaker}: ${round.text}`),
+      "",
+      "Cast your final vote. Award must be 0 if outcome is lose. If outcome is win, award must be a plausible GBP tribunal award based on the facts and anchor case.",
+      'Return ONLY valid JSON with exactly these keys: {"outcome":"win"|"lose","award_gbp":number,"confidence":number,"key_reason":string}.',
+    ].join("\n"),
+    temperature: 0.2,
+    maxOutputTokens: 320,
+  });
+  const object = voteSchema.parse(parseJsonObject(text));
+
+  return {
+    judge: judge.name,
+    outcome: object.outcome,
+    award_gbp: object.outcome === "lose" ? 0 : object.award_gbp,
+    confidence: Number(object.confidence.toFixed(2)),
+    key_reason: object.key_reason,
+  };
+}
+
+async function runDebate({
+  strictJudge,
+  lenientJudge,
+  strictCase,
+  lenientCase,
+  request,
+  jurisdictions,
+  signals,
+  pairIndex,
+}: {
+  strictJudge: JudgeProfile;
+  lenientJudge: JudgeProfile;
+  strictCase: EnrichedCase;
+  lenientCase: EnrichedCase;
+  request: SimulationRequest;
+  jurisdictions: string[];
+  signals: string[];
+  pairIndex: number;
+}): Promise<DebateResult> {
+  const strictOpening: DebateRound = {
+    speaker: strictJudge.name,
+    disposition: "strict",
+    text: await generateJudgeArgument({ judge: strictJudge, anchor: strictCase, request, jurisdictions, signals }),
+  };
+  const lenientReply: DebateRound = {
+    speaker: lenientJudge.name,
+    disposition: "lenient",
+    text: await generateJudgeArgument({
+      judge: lenientJudge,
+      anchor: lenientCase,
+      request,
+      jurisdictions,
+      signals,
+      previousArgument: strictOpening,
+    }),
+  };
+  const strictReply: DebateRound = {
+    speaker: strictJudge.name,
+    disposition: "strict",
+    text: await generateJudgeArgument({
+      judge: strictJudge,
+      anchor: strictCase,
+      request,
+      jurisdictions,
+      signals,
+      previousArgument: lenientReply,
+    }),
+  };
+  const rounds = [strictOpening, lenientReply, strictReply];
+  const votes = await Promise.all([
+    generateJudgeVote({ judge: strictJudge, anchor: strictCase, request, jurisdictions, signals, rounds }),
+    generateJudgeVote({ judge: lenientJudge, anchor: lenientCase, request, jurisdictions, signals, rounds }),
+  ]);
+
+  return {
+    id: `debate-${pairIndex + 1}`,
+    strictJudge: strictJudge.name,
+    lenientJudge: lenientJudge.name,
+    strictCase,
+    lenientCase,
+    rounds,
+    votes,
+    disagreement: votes[0].outcome !== votes[1].outcome,
+  };
+}
+
 export async function runSimulation(request: SimulationRequest): Promise<SimulationResult> {
   const index = await getCaseIndex();
   const jurisdictions = inferJurisdictions(request.narrative);
   const signals = inferSignals(request.narrative);
   const pairs = pickJudgePairs(index.judges, jurisdictions, 5);
 
-  const debates = pairs.map(([strictJudge, lenientJudge], pairIndex) => {
+  const debates = await Promise.all(
+    pairs.map(([strictJudge, lenientJudge], pairIndex) => {
     const strictCase = judgeRelevantCase(strictJudge, jurisdictions, false);
     const lenientCase = judgeRelevantCase(lenientJudge, jurisdictions, true);
-    const votes = [
-      voteForJudge(strictJudge, strictCase, signals, request.claimedValueGbp),
-      voteForJudge(lenientJudge, lenientCase, signals, request.claimedValueGbp),
-    ];
 
-    return {
-      id: `debate-${pairIndex + 1}`,
-      strictJudge: strictJudge.name,
-      lenientJudge: lenientJudge.name,
+    return runDebate({
+      strictJudge,
+      lenientJudge,
       strictCase,
       lenientCase,
-      rounds: debateTranscript(strictJudge, lenientJudge, strictCase, lenientCase, jurisdictions, signals),
-      votes,
-      disagreement: votes[0].outcome !== votes[1].outcome,
-    };
-  });
+      request,
+      jurisdictions,
+      signals,
+      pairIndex,
+    });
+  }),
+  );
 
   const votes = debates.flatMap((debate) => debate.votes);
   const winningAwards = votes.filter((vote) => vote.outcome === "win").map((vote) => vote.award_gbp);
@@ -276,6 +389,7 @@ export async function runSimulation(request: SimulationRequest): Promise<Simulat
       netPositionGbp,
     },
     worthItVerdict: buildWorthItVerdict(winProbability, netPositionGbp, abandonmentRisk, months),
-    caveat: "Awards, timelines, reasoning blurbs, and demo debate text are synthetic hackathon enrichment, not real tribunal compensation data.",
+    caveat:
+      "Debate transcripts and votes are generated by real Opus calls. Awards, timelines, and anchor reasoning blurbs use synthetic hackathon enrichment, not extracted tribunal compensation data.",
   };
 }

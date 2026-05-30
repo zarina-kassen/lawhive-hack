@@ -53,6 +53,12 @@ type SimulationResult = {
   caveat: string;
 };
 
+type CohortSegment = {
+  label: string;
+  count: number;
+  tone: "settle" | "abandon" | "lose" | "negative" | "positive";
+};
+
 const starterNarrative =
   "I was dismissed after raising repeated concerns about unpaid overtime and unsafe shift patterns. I have emails to HR, witness messages from colleagues, and I appealed the dismissal but the company said it was performance related.";
 
@@ -71,6 +77,32 @@ function label(value: string): string {
     .join(" ");
 }
 
+function buildCohort(result: SimulationResult): CohortSegment[] {
+  const settle = Math.min(22, Math.max(6, Math.round((1 - result.realityCost.abandonmentRisk) * 16)));
+  const abandon = Math.min(88, Math.max(5, Math.round(result.realityCost.abandonmentRisk * 100)));
+  const contested = Math.max(0, 100 - settle - abandon);
+  const lose = Math.round(contested * (1 - result.merit.winProbability));
+  const winners = contested - lose;
+  const positiveShare = result.realityCost.netPositionGbp > 0 ? 0.72 : 0.28;
+  const winPositive = Math.round(winners * positiveShare);
+  const winNegative = winners - winPositive;
+
+  return [
+    { label: "Settle early", count: settle, tone: "settle" },
+    { label: "Abandon", count: abandon, tone: "abandon" },
+    { label: "Lose", count: lose, tone: "lose" },
+    { label: "Win, net negative", count: winNegative, tone: "negative" },
+    { label: "Win, net positive", count: winPositive, tone: "positive" },
+  ];
+}
+
+function voteTone(debate: Debate): "win" | "lose" | "split" {
+  const winVotes = debate.votes.filter((vote) => vote.outcome === "win").length;
+  if (winVotes > 1) return "win";
+  if (winVotes === 0) return "lose";
+  return "split";
+}
+
 export default function Home() {
   const [narrative, setNarrative] = useState(starterNarrative);
   const [claimedValueGbp, setClaimedValueGbp] = useState(12_000);
@@ -86,56 +118,75 @@ export default function Home() {
     [result, selectedDebateId],
   );
 
+  const cohort = useMemo(() => (result ? buildCohort(result) : []), [result]);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
 
-    const response = await fetch("/api/simulate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ narrative, claimedValueGbp, financialRunwayMonths, emotionalResilience }),
-    });
+    try {
+      const response = await fetch("/api/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ narrative, claimedValueGbp, financialRunwayMonths, emotionalResilience }),
+      });
 
-    const payload = (await response.json()) as SimulationResult | { error?: string };
+      const payload = (await response.json()) as SimulationResult | { error?: string };
 
-    if (!response.ok) {
-      setError("error" in payload && payload.error ? payload.error : "Could not run the simulation.");
+      if (!response.ok) {
+        setError("error" in payload && payload.error ? payload.error : "Could not run the simulation.");
+        setIsLoading(false);
+        return;
+      }
+
+      setResult(payload as SimulationResult);
+      setSelectedDebateId((payload as SimulationResult).debates[0]?.id ?? null);
+    } catch {
+      setError("The simulation service did not respond.");
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    setResult(payload as SimulationResult);
-    setSelectedDebateId((payload as SimulationResult).debates[0]?.id ?? null);
-    setIsLoading(false);
   }
 
   return (
-    <main className="page-shell">
-      <section className="hero">
+    <main className="case-console">
+      <header className="topbar">
         <div>
-          <p className="eyebrow">Employment Tribunal simulator</p>
-          <h1>The reality check before you spend two years fighting.</h1>
-          <p className="hero-copy">
-            Describe the dispute. The app selects real judge profiles from judges.json, simulates strict vs lenient
-            tribunal reasoning, and separates legal merit from the cost of surviving the case.
-          </p>
+          <p className="kicker">Employment Tribunal Reality Desk</p>
+          <h1>Case merit and reality cost</h1>
         </div>
-        <div className="hero-card">
-          <span>Dataset</span>
-          <strong>2,438 ET decisions</strong>
-          <small>457 real judges, fast-pass metadata, synthetic hackathon enrichment.</small>
-        </div>
-      </section>
+        <dl className="system-strip" aria-label="System status">
+          <div>
+            <dt>Dataset</dt>
+            <dd>2,438 ET decisions</dd>
+          </div>
+          <div>
+            <dt>Judges</dt>
+            <dd>457 named profiles</dd>
+          </div>
+          <div>
+            <dt>Mode</dt>
+            <dd>{isLoading ? "Running" : result ? "Complete" : "Ready"}</dd>
+          </div>
+        </dl>
+      </header>
 
-      <section className="workspace">
-        <form className="intake-card" onSubmit={onSubmit}>
-          <label htmlFor="narrative">Tell the intake chat what happened</label>
-          <textarea id="narrative" value={narrative} onChange={(event) => setNarrative(event.target.value)} />
+      <section className="console-grid">
+        <form className="intake-panel" onSubmit={onSubmit}>
+          <div className="panel-heading">
+            <p className="kicker">Intake</p>
+            <h2>Employee chronology</h2>
+          </div>
 
-          <div className="slider-row">
-            <label>
-              Expected claim value
+          <label className="field-block" htmlFor="narrative">
+            <span>Case narrative</span>
+            <textarea id="narrative" value={narrative} onChange={(event) => setNarrative(event.target.value)} />
+          </label>
+
+          <div className="control-stack">
+            <label className="field-block">
+              <span>Expected claim value</span>
               <input
                 type="number"
                 min={0}
@@ -145,8 +196,11 @@ export default function Home() {
                 onChange={(event) => setClaimedValueGbp(Number(event.target.value))}
               />
             </label>
-            <label>
-              Financial runway: {financialRunwayMonths} months
+
+            <label className="range-block">
+              <span>
+                Financial runway <strong>{financialRunwayMonths}m</strong>
+              </span>
               <input
                 type="range"
                 min={0}
@@ -155,8 +209,11 @@ export default function Home() {
                 onChange={(event) => setFinancialRunwayMonths(Number(event.target.value))}
               />
             </label>
-            <label>
-              Emotional resilience: {emotionalResilience}/100
+
+            <label className="range-block">
+              <span>
+                Emotional resilience <strong>{emotionalResilience}/100</strong>
+              </span>
               <input
                 type="range"
                 min={0}
@@ -167,80 +224,116 @@ export default function Home() {
             </label>
           </div>
 
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? "Running five debates..." : "Run reality check"}
+          <button className="run-button" type="submit" disabled={isLoading}>
+            <span>{isLoading ? "Running debates" : "Run reality check"}</span>
+            <span aria-hidden="true">↵</span>
           </button>
           {error ? <p className="error">{error}</p> : null}
         </form>
 
-        {result ? (
-          <section className="results">
-            <div className="verdict-card">
-              <p className="eyebrow">Worth-It Verdict</p>
-              <h2>{result.worthItVerdict}</h2>
-              <p>{result.caveat}</p>
-            </div>
+        <section className="main-panel" aria-live="polite">
+          {result ? (
+            <>
+              <div className="verdict-band">
+                <div>
+                  <p className="kicker">Worth-It Verdict</p>
+                  <h2>{result.worthItVerdict}</h2>
+                  <p>{result.caveat}</p>
+                </div>
+                <div className="net-position">
+                  <span>Net position</span>
+                  <strong>{money(result.realityCost.netPositionGbp)}</strong>
+                </div>
+              </div>
 
-            <div className="metric-grid">
-              <article>
-                <span>Case Merit</span>
-                <strong>{percent(result.merit.winProbability)}</strong>
-                <small>Expected winning award: {money(result.merit.expectedAwardGbp)}</small>
-              </article>
-              <article>
-                <span>Award Spread</span>
-                <strong>{money(result.merit.awardSpread.median)}</strong>
-                <small>
-                  {money(result.merit.awardSpread.min)} to {money(result.merit.awardSpread.max)}
-                </small>
-              </article>
-              <article>
-                <span>Reality Cost</span>
-                <strong>{money(result.realityCost.unrecoverableCostGbp)}</strong>
-                <small>Over ~{result.realityCost.expectedMonths} months</small>
-              </article>
-              <article>
-                <span>Abandonment Risk</span>
-                <strong>{percent(result.realityCost.abandonmentRisk)}</strong>
-                <small>Driven by time, runway, and resilience</small>
-              </article>
-            </div>
+              <div className="metric-grid">
+                <article>
+                  <span>Win probability</span>
+                  <strong>{percent(result.merit.winProbability)}</strong>
+                  <small>{money(result.merit.expectedAwardGbp)} expected winning award</small>
+                </article>
+                <article>
+                  <span>Award median</span>
+                  <strong>{money(result.merit.awardSpread.median)}</strong>
+                  <small>
+                    {money(result.merit.awardSpread.min)} to {money(result.merit.awardSpread.max)}
+                  </small>
+                </article>
+                <article>
+                  <span>Reality cost</span>
+                  <strong>{money(result.realityCost.unrecoverableCostGbp)}</strong>
+                  <small>Over ~{result.realityCost.expectedMonths} months</small>
+                </article>
+                <article>
+                  <span>Abandonment risk</span>
+                  <strong>{percent(result.realityCost.abandonmentRisk)}</strong>
+                  <small>Runway and resilience adjusted</small>
+                </article>
+              </div>
 
-            <div className="case-tags">
-              {result.caseProfile.jurisdictions.map((jurisdiction) => (
-                <span key={jurisdiction}>{label(jurisdiction)}</span>
-              ))}
-              {result.caseProfile.signals.map((signal) => (
-                <span key={signal}>{signal}</span>
-              ))}
-            </div>
+              <div className="case-classification">
+                {result.caseProfile.jurisdictions.map((jurisdiction) => (
+                  <span key={jurisdiction}>{label(jurisdiction)}</span>
+                ))}
+                {result.caseProfile.signals.map((signal) => (
+                  <span key={signal}>{signal}</span>
+                ))}
+              </div>
 
-            <div className="debate-layout">
-              <div className="debate-graph" aria-label="Debate graph">
-                <div className="center-node">Your case</div>
-                {result.debates.map((debate, index) => {
-                  const winVotes = debate.votes.filter((vote) => vote.outcome === "win").length;
-                  return (
-                    <button
-                      key={debate.id}
-                      type="button"
-                      className={`graph-node node-${index} ${selectedDebate?.id === debate.id ? "active" : ""} ${
-                        winVotes > 1 ? "win" : winVotes === 0 ? "lose" : "split"
-                      }`}
-                      onClick={() => setSelectedDebateId(debate.id)}
-                    >
-                      D{index + 1}
-                      {debate.disagreement ? <small>split</small> : null}
-                    </button>
-                  );
-                })}
+              <div className="analysis-grid">
+                <section className="debate-panel">
+                  <div className="panel-heading">
+                    <p className="kicker">Debate Graph</p>
+                    <h3>Judge vote network</h3>
+                  </div>
+                  <div className="debate-graph" aria-label="Debate graph">
+                    <div className="graph-axis axis-a" />
+                    <div className="graph-axis axis-b" />
+                    <div className="center-node">
+                      <span>Your case</span>
+                    </div>
+                    {result.debates.map((debate, index) => {
+                      const tone = voteTone(debate);
+                      return (
+                        <button
+                          key={debate.id}
+                          type="button"
+                          className={`graph-node node-${index} ${selectedDebate?.id === debate.id ? "active" : ""} ${tone}`}
+                          onClick={() => setSelectedDebateId(debate.id)}
+                          aria-label={`Open debate ${index + 1}`}
+                        >
+                          <span>D{index + 1}</span>
+                          <small>{debate.disagreement ? "split" : tone}</small>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                <section className="cohort-panel">
+                  <div className="panel-heading">
+                    <p className="kicker">100-Person Cohort</p>
+                    <h3>Reality flow</h3>
+                  </div>
+                  <div className="cohort-flow">
+                    {cohort.map((segment) => (
+                      <div key={segment.label} className={`cohort-row ${segment.tone}`}>
+                        <div>
+                          <strong>{segment.count}</strong>
+                          <span>{segment.label}</span>
+                        </div>
+                        <i style={{ inlineSize: `${segment.count}%` }} />
+                      </div>
+                    ))}
+                  </div>
+                </section>
               </div>
 
               {selectedDebate ? (
-                <article className="transcript-card">
+                <article className="transcript-panel">
                   <div className="transcript-heading">
                     <div>
-                      <p className="eyebrow">Selected debate</p>
+                      <p className="kicker">Selected Debate</p>
                       <h3>
                         {selectedDebate.strictJudge} vs {selectedDebate.lenientJudge}
                       </h3>
@@ -250,11 +343,11 @@ export default function Home() {
 
                   <div className="anchor-cases">
                     <p>
-                      <strong>{selectedDebate.strictCase.case_number}</strong>:{" "}
+                      <strong>{selectedDebate.strictCase.case_number}</strong>
                       {selectedDebate.strictCase.enrichment.reasoning_blurb}
                     </p>
                     <p>
-                      <strong>{selectedDebate.lenientCase.case_number}</strong>:{" "}
+                      <strong>{selectedDebate.lenientCase.case_number}</strong>
                       {selectedDebate.lenientCase.enrichment.reasoning_blurb}
                     </p>
                   </div>
@@ -283,17 +376,38 @@ export default function Home() {
                   </div>
                 </article>
               ) : null}
-            </div>
-          </section>
-        ) : (
-          <section className="empty-state">
-            <h2>First vertical slice</h2>
-            <p>
-              This demo already exercises the data path: reliable named judges, final-merits cases only, synthetic
-              award/time/reasoning enrichment, five strict-vs-lenient debates, and a Worth-It Verdict.
-            </p>
-          </section>
-        )}
+            </>
+          ) : (
+            <section className="empty-panel">
+              <div>
+                <p className="kicker">Awaiting Simulation</p>
+                <h2>Five judge debates will appear here.</h2>
+              </div>
+              <div className="empty-grid" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+              <dl>
+                <div>
+                  <dt>Case merit</dt>
+                  <dd>Pending</dd>
+                </div>
+                <div>
+                  <dt>Reality cost</dt>
+                  <dd>Pending</dd>
+                </div>
+                <div>
+                  <dt>Worth-It Verdict</dt>
+                  <dd>Pending</dd>
+                </div>
+              </dl>
+            </section>
+          )}
+        </section>
       </section>
     </main>
   );
