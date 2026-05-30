@@ -1,0 +1,402 @@
+{
+  "caseMerit": {
+    "winProbability": 0.6,
+    "expectedAwardGbp": 16350,
+    "awardSpreadGbp": {
+      "min": 9450,
+      "median": 16350,
+      "max": 31800
+    }
+  },
+  "practicalImpact": {
+    "typicalMonthsToResolution": 14,
+    "likelyUnrecoverableCostGbp": 4900,
+    "abandonmentRisk": "medium"
+  },
+  "recommendation": "Leah has credible leverage on unfair dismissal and victimisation, especially because the redundancy followed closely after her grievance and the scoring matrix was not disclosed. Do not accept the one-month offer as the first move: counter from a documented schedule of loss, but treat the CEO email, covert recordings, and bonus clause as settlement-risk discounts.",
+  "debates": [
+    {
+      "id": "debate-1",
+      "strictJudge": {
+        "name": "Gumbiti-zimuto",
+        "claimantSuccessRateFinal": 0.25,
+        "nFinalMerits": 39
+      },
+      "lenientJudge": {
+        "name": "Burns J",
+        "claimantSuccessRateFinal": 0.571,
+        "nFinalMerits": 32
+      },
+      "anchorCases": [
+        {
+          "caseNumber": "6022490/2024",
+          "claimant": "Mr G Shahzad",
+          "respondent": "Softcat plc",
+          "outcome": "dismissed",
+          "jurisdiction": [
+            "breach-of-contract",
+            "unfair-dismissal"
+          ],
+          "reasoningBlurb": "The tribunal accepted the employer's genuine belief in gross misconduct after a reasonable investigation, emphasising the claimant's lack of candour and the curative effect of an independent appeal."
+        },
+        {
+          "caseNumber": "6007192/2025",
+          "claimant": "Miss E Kolaniak",
+          "respondent": "Nice Systems UK Ltd",
+          "outcome": "claimant_won",
+          "jurisdiction": [
+            "unfair-dismissal"
+          ],
+          "reasoningBlurb": "The judge accepted a genuine redundancy setting, but found dismissal had been decided before consultation, making the consultation a sham and the dismissal unfair."
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "strict",
+          "message": "The employer has a clean route if it can prove a genuine restructure and credible selection criteria. Leah's emotional CEO email and covert recordings give Granthorne material to say trust had broken down independently of the grievance."
+        },
+        {
+          "speaker": "lenient",
+          "message": "The timing is too tight to treat as neutral. A sole redundancy two weeks after a grievance, with no scoring matrix disclosed, looks like a predetermined process in the same way the Nice Systems consultation was treated as a sham."
+        },
+        {
+          "speaker": "strict",
+          "message": "I would discount heavily for conduct and contributory risk. The recordings may be admissible, but making them covertly and threatening them in an angry CEO email will affect remedy and credibility."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Those points reduce compensation, not liability. The missing matrix, the pool of one, and the proximity to the protected complaint give Leah a realistic unfair dismissal path."
+        }
+      ],
+      "votes": [
+        {
+          "outcome": "lose",
+          "awardGbp": 0,
+          "confidence": 0.58,
+          "keyReason": "Granthorne may justify redundancy and use Leah's later conduct to frame dismissal as procedurally imperfect but within the reasonable range.",
+          "judge": "Gumbiti-zimuto",
+          "disposition": "strict"
+        },
+        {
+          "outcome": "win",
+          "awardGbp": 18500,
+          "confidence": 0.72,
+          "keyReason": "The redundancy appears predetermined and inadequately evidenced because Leah was the only person selected and the scoring matrix was withheld.",
+          "judge": "Burns J",
+          "disposition": "lenient"
+        }
+      ],
+      "disagreed": true
+    },
+    {
+      "id": "debate-2",
+      "strictJudge": {
+        "name": "Campbell",
+        "claimantSuccessRateFinal": 0.562,
+        "nFinalMerits": 15
+      },
+      "lenientJudge": {
+        "name": "Adkin",
+        "claimantSuccessRateFinal": 0.526,
+        "nFinalMerits": 12
+      },
+      "anchorCases": [
+        {
+          "caseNumber": "4102603/2025",
+          "claimant": "Mr J Fleming",
+          "respondent": "Sodexo Live UK Ltd",
+          "outcome": "dismissed",
+          "jurisdiction": [
+            "public-interest-disclosure",
+            "unfair-dismissal"
+          ],
+          "reasoningBlurb": "The judge assumed disclosures may have been made but dismissed the claim because the disciplinary steps and dismissal were not caused by those disclosures."
+        },
+        {
+          "caseNumber": "2217828/2024",
+          "claimant": "Mrs S D Mentaberry",
+          "respondent": "Ground Truth Intelligence Ltd and Others",
+          "outcome": "partly_upheld",
+          "jurisdiction": [
+            "breach-of-contract",
+            "equal-pay-act",
+            "sex-discrimination",
+            "unfair-dismissal",
+            "victimisation-discrimination"
+          ],
+          "reasoningBlurb": "The judge found unfair dismissal and victimisation where redundancy threats and dismissal followed a protected discrimination complaint, while dismissing broader sex discrimination and equal pay allegations."
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "strict",
+          "message": "The claim is not won by chronology alone. Leah must prove the grievance materially influenced redundancy, not merely that redundancy followed an unpleasant grievance process."
+        },
+        {
+          "speaker": "lenient",
+          "message": "The grievance is a protected act and the sequence is unusually compressed. Mentaberry shows that redundancy threats and dismissal after a discrimination complaint can amount to victimisation even when broader discrimination allegations fail."
+        },
+        {
+          "speaker": "strict",
+          "message": "If Granthorne has business records showing restructure need and objective scoring, the causal chain breaks. The failed grievance outcome also gives them a neutral explanation."
+        },
+        {
+          "speaker": "lenient",
+          "message": "They have not shown Leah the matrix despite requests. A tribunal will notice that evidential gap, particularly where she was the only person affected in a team of nine."
+        }
+      ],
+      "votes": [
+        {
+          "outcome": "lose",
+          "awardGbp": 0,
+          "confidence": 0.54,
+          "keyReason": "The causal link between grievance and redundancy is arguable but not certain without the missing selection evidence.",
+          "judge": "Campbell",
+          "disposition": "strict"
+        },
+        {
+          "outcome": "win",
+          "awardGbp": 23500,
+          "confidence": 0.68,
+          "keyReason": "The protected grievance, rapid redundancy, pool of one, and withheld matrix make victimisation and unfair dismissal realistically arguable.",
+          "judge": "Adkin",
+          "disposition": "lenient"
+        }
+      ],
+      "disagreed": true
+    },
+    {
+      "id": "debate-3",
+      "strictJudge": {
+        "name": "Dick",
+        "claimantSuccessRateFinal": 0.346,
+        "nFinalMerits": 31
+      },
+      "lenientJudge": {
+        "name": "Alliott",
+        "claimantSuccessRateFinal": 0.5,
+        "nFinalMerits": 56
+      },
+      "anchorCases": [
+        {
+          "caseNumber": "3305884/2021",
+          "claimant": "Mr A Annunziata",
+          "respondent": "Milton Keynes City Council",
+          "outcome": "dismissed",
+          "jurisdiction": [
+            "public-interest-disclosure",
+            "unfair-dismissal"
+          ],
+          "reasoningBlurb": "The judge accepted the employer's redundancy/restructuring explanation and rejected the allegation that dismissal was caused by whistleblowing."
+        },
+        {
+          "caseNumber": "3308953/2022",
+          "claimant": "Ms M Cap",
+          "respondent": "Socks World International Ltd",
+          "outcome": "partly_upheld",
+          "jurisdiction": [
+            "protective-award",
+            "race-discrimination",
+            "redundancy",
+            "sex-discrimination",
+            "unfair-dismissal",
+            "written-statements"
+          ],
+          "reasoningBlurb": "The tribunal accepted redundancy as the genuine reason but found no proper warning or consultation and an unreasonable pool of one, so dismissal was unfair."
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "strict",
+          "message": "I would separate the discrimination narrative from the redundancy procedure. Leah may struggle to prove sex discrimination if the promotion examples are not tightly evidenced."
+        },
+        {
+          "speaker": "lenient",
+          "message": "Agreed on separating issues, but that still leaves a strong ordinary unfair dismissal case. Ms Cap is a close analogue: genuine redundancy can still be unfair where warning, consultation, and pool selection are deficient."
+        },
+        {
+          "speaker": "strict",
+          "message": "The strongest outcome is probably not a full discrimination win. It is a procedural unfair dismissal finding with Polkey and contributory reductions."
+        },
+        {
+          "speaker": "lenient",
+          "message": "That is still real leverage. With three years' service, a flawed pool of one, and a low one-month offer, the settlement value is above the current offer."
+        }
+      ],
+      "votes": [
+        {
+          "outcome": "win",
+          "awardGbp": 9450,
+          "confidence": 0.61,
+          "keyReason": "Even on a restrained view, the missing selection matrix and appeal defects create a procedural unfair dismissal finding with reduced compensation.",
+          "judge": "Dick",
+          "disposition": "strict"
+        },
+        {
+          "outcome": "win",
+          "awardGbp": 14200,
+          "confidence": 0.74,
+          "keyReason": "The pool-of-one redundancy and lack of transparent consultation closely mirror cases where dismissal was held unfair despite a genuine redundancy background.",
+          "judge": "Alliott",
+          "disposition": "lenient"
+        }
+      ],
+      "disagreed": false
+    },
+    {
+      "id": "debate-4",
+      "strictJudge": {
+        "name": "Ayre",
+        "claimantSuccessRateFinal": 0.278,
+        "nFinalMerits": 15
+      },
+      "lenientJudge": {
+        "name": "Jones A",
+        "claimantSuccessRateFinal": 0.444,
+        "nFinalMerits": 18
+      },
+      "anchorCases": [
+        {
+          "caseNumber": "6018916/2024",
+          "claimant": "A Cooper",
+          "respondent": "Cranswick Convenience Foods Ltd",
+          "outcome": "partly_upheld",
+          "jurisdiction": [
+            "equal-pay-act",
+            "unfair-dismissal"
+          ],
+          "reasoningBlurb": "The tribunal dismissed the unfair redundancy claim because the employer showed redundancy and acted within the reasonable range on pool and selection, while upholding a separate equal pay claim."
+        },
+        {
+          "caseNumber": "8001317/2024",
+          "claimant": "Ms C Goble and Dr N Clark",
+          "respondent": "Fife Employment Access Trust (FEAT)",
+          "outcome": "partly_upheld",
+          "jurisdiction": [
+            "breach-of-contract",
+            "disability-discrimination",
+            "public-interest-disclosure",
+            "redundancy",
+            "unfair-dismissal",
+            "unlawful-deduction-from-wages",
+            "working-time-regulations"
+          ],
+          "reasoningBlurb": "The tribunal upheld unfair and wrongful dismissal, protected-disclosure detriment, reasonable-adjustment failures, and pay claims where the employer's disciplinary and dismissal handling was non-neutral and deficient."
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "strict",
+          "message": "A tribunal can accept a pool of one if the role is genuinely unique. Leah's title as operations manager may let Granthorne say her role alone disappeared."
+        },
+        {
+          "speaker": "lenient",
+          "message": "But the team of nine matters. Without the scoring matrix, the tribunal cannot test whether the pool, criteria, and appeal were genuinely neutral."
+        },
+        {
+          "speaker": "strict",
+          "message": "I would also be cautious about valuing sex discrimination highly. The promotion history may be background unless she can name comparators and decisions."
+        },
+        {
+          "speaker": "lenient",
+          "message": "The better valuation is unfair dismissal plus victimisation pressure. FEAT shows tribunals react strongly where process becomes non-neutral after complaints."
+        }
+      ],
+      "votes": [
+        {
+          "outcome": "lose",
+          "awardGbp": 0,
+          "confidence": 0.52,
+          "keyReason": "If Granthorne proves Leah's role was genuinely removed and selection was role-based, the pool-of-one challenge may fail.",
+          "judge": "Ayre",
+          "disposition": "strict"
+        },
+        {
+          "outcome": "win",
+          "awardGbp": 31800,
+          "confidence": 0.66,
+          "keyReason": "The employer's refusal to disclose scoring and the failed appeal create a serious risk that the redundancy process will be found non-neutral.",
+          "judge": "Jones A",
+          "disposition": "lenient"
+        }
+      ],
+      "disagreed": true
+    },
+    {
+      "id": "debate-5",
+      "strictJudge": {
+        "name": "Campbell",
+        "claimantSuccessRateFinal": 0.562,
+        "nFinalMerits": 15
+      },
+      "lenientJudge": {
+        "name": "Kemp A",
+        "claimantSuccessRateFinal": 0.846,
+        "nFinalMerits": 5
+      },
+      "anchorCases": [
+        {
+          "caseNumber": "8002222/2024",
+          "claimant": "Dr M Yousef",
+          "respondent": "Offshore Renewable Energy Catapult",
+          "outcome": "dismissed",
+          "jurisdiction": [
+            "breach-of-contract",
+            "race-discrimination",
+            "unlawful-deduction-from-wages"
+          ],
+          "reasoningBlurb": "The tribunal dismissed bonus and deduction claims because the scheme was discretionary, consistently applied, and excluded employees under notice, so no sum was properly payable."
+        },
+        {
+          "caseNumber": "8002801/2025",
+          "claimant": "Mr N Williamson",
+          "respondent": "PTS Services Group Ltd",
+          "outcome": "claimant_won",
+          "jurisdiction": [
+            "breach-of-contract",
+            "contract-of-employment",
+            "unlawful-deduction-from-wages"
+          ],
+          "reasoningBlurb": "The judge preferred the claimant's evidence about the governing bonus terms and awarded the unpaid non-discretionary bonus where the employer could not prove a superseding discretionary contract."
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "strict",
+          "message": "The FY25/26 STIP is vulnerable. Clause 8.3 says no bonus if under notice on the payment date, and Yousef shows tribunals will enforce notice-date exclusions where the scheme is clear."
+        },
+        {
+          "speaker": "lenient",
+          "message": "But Granthorne paid the STIP on 27 March after notice was already given. That creates a waiver or estoppel argument, and any clawback from final pay needs clear contractual authority."
+        },
+        {
+          "speaker": "strict",
+          "message": "The March 2027 bonus is much weaker. Leah will not be employed at the payment date, and future discretionary or conditional bonuses are hard to recover."
+        },
+        {
+          "speaker": "lenient",
+          "message": "I would separate them: defend the paid GBP 5,340 strongly, discount the future GBP 8,010 heavily, and use both as structured settlement levers rather than headline tribunal value."
+        }
+      ],
+      "votes": [
+        {
+          "outcome": "lose",
+          "awardGbp": 0,
+          "confidence": 0.6,
+          "keyReason": "The bonus clause and notice-date condition give Granthorne a strong answer to future STIP and a plausible clawback argument.",
+          "judge": "Campbell",
+          "disposition": "strict"
+        },
+        {
+          "outcome": "win",
+          "awardGbp": 12800,
+          "confidence": 0.64,
+          "keyReason": "The paid bonus is defensible against clawback and the bonus dispute adds settlement value, although the next-cycle bonus should be discounted heavily.",
+          "judge": "Kemp A",
+          "disposition": "lenient"
+        }
+      ],
+      "disagreed": true
+    }
+  ]
+}

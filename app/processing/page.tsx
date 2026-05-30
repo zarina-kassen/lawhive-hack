@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Scale, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { SimulationResult } from "@/src/lib/simulation";
+
+type IntakePayload = {
+  caseContext: string;
+  evidenceFiles: Array<{ name: string; size: number }>;
+  createdAt: string;
+};
 
 const STAGES = [
   "Building your case profile",
@@ -14,7 +21,10 @@ const STAGES = [
 
 export default function ProcessingPage() {
   const router = useRouter();
+  const hasStarted = useRef(false);
   const [activeStage, setActiveStage] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [simulationReady, setSimulationReady] = useState(false);
 
   // Random per-step durations summing to a total of 15–30s.
   const [durations] = useState(() => {
@@ -25,13 +35,63 @@ export default function ProcessingPage() {
   });
 
   useEffect(() => {
-    if (activeStage < STAGES.length) {
-      const t = setTimeout(() => setActiveStage((s) => s + 1), durations[activeStage]);
-      return () => clearTimeout(t);
+    if (error || activeStage >= STAGES.length) return;
+
+    const t = setTimeout(() => setActiveStage((stage) => stage + 1), durations[activeStage]);
+    return () => clearTimeout(t);
+  }, [activeStage, durations, error]);
+
+  useEffect(() => {
+    if (hasStarted.current) return;
+    hasStarted.current = true;
+
+    const rawIntake = window.sessionStorage.getItem("tribunalNavigator.intake");
+    if (!rawIntake) {
+      router.replace("/");
+      return;
     }
+
+    const intake = JSON.parse(rawIntake) as IntakePayload;
+    const controller = new AbortController();
+
+    async function runSimulation() {
+      try {
+        const response = await fetch("/api/simulate", {
+          body: JSON.stringify({
+            caseContext: intake.caseContext,
+            evidenceFiles: intake.evidenceFiles,
+          }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+          signal: controller.signal,
+        });
+        const body = (await response.json()) as SimulationResult | { error?: string };
+
+        if (!response.ok) {
+          throw new Error("error" in body && body.error ? body.error : "The simulation failed.");
+        }
+
+        window.sessionStorage.setItem("tribunalNavigator.simulationResult", JSON.stringify(body));
+        setSimulationReady(true);
+      } catch (caught) {
+        if (controller.signal.aborted) return;
+        setError(caught instanceof Error ? caught.message : "The simulation failed.");
+      }
+    }
+
+    void runSimulation();
+
+    return () => {
+      controller.abort();
+    };
+  }, [router]);
+
+  useEffect(() => {
+    if (!simulationReady || activeStage < STAGES.length) return;
+
     const done = setTimeout(() => router.push("/dashboard"), 400);
     return () => clearTimeout(done);
-  }, [activeStage, durations, router]);
+  }, [activeStage, router, simulationReady]);
 
   return (
     <main className="flex min-h-screen w-full items-center justify-center bg-background px-6">
@@ -44,17 +104,20 @@ export default function ProcessingPage() {
         </div>
 
         <div className="mt-8 flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Preparing your assessment.</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {error ? "We could not complete the assessment." : "Preparing your assessment."}
+          </h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            We&apos;re reconstructing a panel of real UK Employment Tribunal judges and running them
-            through your case.
+            {error
+              ? error
+              : "We're reconstructing a panel of real UK Employment Tribunal judges and running them through your case."}
           </p>
         </div>
 
         <ul className="mt-8 flex w-full flex-col gap-2 text-left">
           {STAGES.map((stage, i) => {
             const done = i < activeStage;
-            const active = i === activeStage;
+            const active = !error && i === activeStage;
             return (
               <li
                 key={stage}
@@ -80,6 +143,16 @@ export default function ProcessingPage() {
             );
           })}
         </ul>
+
+        {error && (
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="mt-6 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background"
+          >
+            Back to intake
+          </button>
+        )}
       </div>
     </main>
   );
