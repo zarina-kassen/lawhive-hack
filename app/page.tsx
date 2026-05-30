@@ -28,7 +28,7 @@ export default function IntakePage() {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const canSubmit = caseContext.trim().length >= 20;
+  const canSubmit = caseContext.trim().length > 0 && evidenceFiles.length > 0;
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -117,8 +117,7 @@ export default function IntakePage() {
           <section className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <h2 className="text-base font-semibold">
-                <span className="text-muted-foreground">2.</span> Add any evidence.{" "}
-                <span className="font-normal text-muted-foreground">(optional)</span>
+                <span className="text-muted-foreground">2.</span> Add your evidence.
               </h2>
               <p className="text-sm text-muted-foreground">
                 Upload documents that support your account.

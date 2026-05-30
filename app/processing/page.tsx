@@ -16,14 +16,22 @@ export default function ProcessingPage() {
   const router = useRouter();
   const [activeStage, setActiveStage] = useState(0);
 
+  // Random per-step durations summing to a total of 15–30s.
+  const [durations] = useState(() => {
+    const total = 15000 + Math.random() * 15000; // 15s–30s
+    const weights = STAGES.map(() => 0.5 + Math.random());
+    const sum = weights.reduce((a, b) => a + b, 0);
+    return weights.map((w) => (w / sum) * total);
+  });
+
   useEffect(() => {
     if (activeStage < STAGES.length) {
-      const t = setTimeout(() => setActiveStage((s) => s + 1), 1400);
+      const t = setTimeout(() => setActiveStage((s) => s + 1), durations[activeStage]);
       return () => clearTimeout(t);
     }
-    const done = setTimeout(() => router.push("/dashboard"), 600);
+    const done = setTimeout(() => router.push("/dashboard"), 400);
     return () => clearTimeout(done);
-  }, [activeStage, router]);
+  }, [activeStage, durations, router]);
 
   return (
     <main className="flex min-h-screen w-full items-center justify-center bg-background px-6">
