@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Scale, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,6 @@ const STAGES = [
 
 export default function ProcessingPage() {
   const router = useRouter();
-  const hasStarted = useRef(false);
   const [activeStage, setActiveStage] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [simulationReady, setSimulationReady] = useState(false);
@@ -42,9 +41,6 @@ export default function ProcessingPage() {
   }, [activeStage, durations, error]);
 
   useEffect(() => {
-    if (hasStarted.current) return;
-    hasStarted.current = true;
-
     const rawIntake = window.sessionStorage.getItem("tribunalNavigator.intake");
     if (!rawIntake) {
       router.replace("/");

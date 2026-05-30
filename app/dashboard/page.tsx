@@ -8,9 +8,7 @@ import {
   Plus,
   Share2,
   Download,
-  ChevronDown,
   Gavel,
-  ArrowRight,
   CheckCircle2,
   AlertCircle,
   XCircle,
@@ -28,9 +26,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Pill } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
-import { MOCK_RESULT, type SimulationResult } from "./mock";
+import demoSimulation from "@/src/lib/demo-simulation.json";
+import type { SimulationResult } from "@/src/lib/simulation";
 import GaugeChart from "./gauge-chart";
 import { RecommendationItem, type Recommendation } from "./recommendation-item";
+import DebateGraph from "./debate-graph";
 
 const gbp = (n: number) =>
   new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(n);
@@ -45,16 +45,16 @@ const RISK_STYLES: Record<string, string> = {
 type View = "dashboard" | "debates";
 
 export default function DashboardPage() {
-  const [result, setResult] = useState<SimulationResult>(MOCK_RESULT);
+  const [result, setResult] = useState<SimulationResult>(demoSimulation as SimulationResult);
   const [view, setView] = useState<View>("dashboard");
 
   useEffect(() => {
-    const rawResult = window.sessionStorage.getItem("tribunalNavigator.result");
+    const rawResult = window.sessionStorage.getItem("tribunalNavigator.simulationResult");
     if (rawResult) {
       try {
         setResult(JSON.parse(rawResult) as SimulationResult);
       } catch {
-        /* fall back to mock */
+        /* fall back to the demo simulation */
       }
     }
   }, []);
@@ -104,7 +104,7 @@ export default function DashboardPage() {
     return items;
   }, [caseMerit, practicalImpact, netPosition]);
 
-  const claimLabel = "Redundancy & Unpaid Wages";
+  const claimLabel = "Leah Miller v Granthorne Logistics";
 
   return (
     <main className="min-h-screen w-full bg-background">
@@ -311,16 +311,15 @@ export default function DashboardPage() {
             </div>
           </>
         ) : (
-          <div className="mx-auto flex max-w-3xl flex-col gap-3">
+          <div className="flex flex-col gap-3">
             <div className="mb-1">
               <h2 className="text-sm font-semibold">The judge debates</h2>
               <p className="text-sm text-muted-foreground">
-                {debates.length} debates between strict and lenient real tribunal judges.
+                {debates.length} debates between strict and lenient real tribunal judges. Click a node to inspect its
+                votes, transcript, and anchor cases.
               </p>
             </div>
-            {debates.map((debate) => (
-              <DebateCard key={debate.id} debate={debate} />
-            ))}
+            <DebateGraph result={result} />
           </div>
         )}
       </div>
@@ -387,82 +386,3 @@ function SnapshotRow({ label, value, valueClass }: { label: string; value: strin
   );
 }
 
-function DebateCard({ debate }: { debate: SimulationResult["debates"][number] }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="overflow-hidden rounded-xl border bg-card">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-4 px-5 py-4 text-left"
-      >
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-          <Gavel className="size-4" />
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <span className="truncate">{debate.strictJudge.name}</span>
-            <span className="text-muted-foreground">vs</span>
-            <span className="truncate">{debate.lenientJudge.name}</span>
-          </div>
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            {debate.votes.map((v) => (
-              <span
-                key={v.judge}
-                className={cn(
-                  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
-                  v.outcome === "win" ? RISK_STYLES.low : "border-border text-muted-foreground"
-                )}
-              >
-                {v.outcome === "win" ? `Win · ${gbp(v.awardGbp)}` : "Lose"}
-              </span>
-            ))}
-            {debate.disagreed && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-chart-2/30 bg-chart-2/10 px-2 py-0.5 text-[11px] font-medium text-chart-2">
-                Split
-              </span>
-            )}
-          </div>
-        </div>
-        <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
-      </button>
-
-      {open && (
-        <div className="border-t px-5 py-4">
-          <ul className="flex flex-col gap-3">
-            {debate.transcript.map((line, i) => (
-              <li key={i} className="flex gap-3">
-                <span
-                  className={cn(
-                    "mt-0.5 inline-flex h-fit shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                    line.speaker === "strict"
-                      ? "bg-muted text-muted-foreground"
-                      : "bg-primary/10 text-primary"
-                  )}
-                >
-                  {line.speaker === "strict" ? debate.strictJudge.name : debate.lenientJudge.name}
-                </span>
-                <p className="text-sm leading-relaxed text-foreground/90">{line.message}</p>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            {debate.votes.map((v) => (
-              <div key={v.judge} className="rounded-lg border bg-muted/30 p-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium">{v.judge}</span>
-                  <span className="text-muted-foreground">{pct(v.confidence)} confident</span>
-                </div>
-                <p className="mt-1.5 flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
-                  <ArrowRight className="mt-0.5 size-3 shrink-0" />
-                  {v.keyReason}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
