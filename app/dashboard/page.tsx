@@ -16,7 +16,6 @@ import {
   XCircle,
   Clock,
   Wallet,
-  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,6 +62,7 @@ export default function DashboardPage() {
   const { caseMerit, practicalImpact, recommendation, debates } = result;
   const netPosition = caseMerit.expectedAwardGbp - practicalImpact.likelyUnrecoverableCostGbp;
   const winScore = Math.round(caseMerit.winProbability * 100);
+  const worthIt = netPosition > 0 && caseMerit.winProbability >= 0.55;
 
   // Vote tally for the outcome breakdown.
   const tally = useMemo(() => {
@@ -150,12 +150,41 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <div className="p-5">
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 p-5">
         {view === "dashboard" ? (
-          <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2 xl:grid-cols-[1fr_1fr_1.15fr]">
-            {/* Left column: Case Merit + Debate Log */}
-            <div className="flex flex-col gap-5">
-              <Card>
+          <>
+            {/* Verdict hero */}
+            <Card>
+              <CardContent className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col gap-2 lg:max-w-2xl">
+                  <span
+                    className={cn(
+                      "inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold",
+                      worthIt ? RISK_STYLES.low : RISK_STYLES.high
+                    )}
+                  >
+                    {worthIt ? "Worth pursuing" : "Probably not worth it"}
+                  </span>
+                  <p className="font-heading text-xl leading-snug tracking-tight lg:text-2xl">
+                    {recommendation}
+                  </p>
+                </div>
+                <div className="grid shrink-0 grid-cols-2 gap-3 sm:grid-cols-4">
+                  <HeroStat label="Win" value={`${winScore}%`} />
+                  <HeroStat label="Expected" value={gbp(caseMerit.expectedAwardGbp)} />
+                  <HeroStat
+                    label="Net"
+                    value={gbp(netPosition)}
+                    valueClass={netPosition >= 0 ? "text-chart-4" : "text-destructive"}
+                  />
+                  <HeroStat label="Timeline" value={`~${practicalImpact.typicalMonthsToResolution}mo`} />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Main grid */}
+            <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3">
+              <Card className="h-full">
                 <CardHeader>
                   <CardTitle className="text-sm">Case Merit</CardTitle>
                   <CardDescription className="text-xs">Overall odds and outcome breakdown</CardDescription>
@@ -210,59 +239,8 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Debate Log</CardTitle>
-                  <CardDescription className="text-xs">How each judge pair voted</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-5">
-                    {debates.map((debate) => {
-                      const win = debate.votes.filter((v) => v.outcome === "win").length;
-                      const dot = debate.disagreed
-                        ? "border-chart-2/30 bg-chart-2/10"
-                        : win === 2
-                          ? "border-chart-4/30 bg-chart-4/10"
-                          : "border-destructive/30 bg-destructive/10";
-                      const inner = debate.disagreed
-                        ? "bg-chart-2"
-                        : win === 2
-                          ? "bg-chart-4"
-                          : "bg-destructive";
-                      return (
-                        <li key={debate.id} className="relative flex items-start gap-3">
-                          <span
-                            className={cn("mt-0.5 flex size-4 items-center justify-center rounded-full border", dot)}
-                          >
-                            <span className={cn("block size-2 rounded-full", inner)} />
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm text-foreground">
-                              <strong className="font-medium">{debate.strictJudge.name}</strong>
-                              <span className="text-muted-foreground"> vs </span>
-                              <strong className="font-medium">{debate.lenientJudge.name}</strong>
-                            </p>
-                            <div className="mt-2 flex items-center gap-2">
-                              {debate.votes.map((v, idx) => (
-                                <span key={v.judge} className="flex items-center gap-2">
-                                  <Pill color={v.outcome === "win" ? "success" : "muted"}>
-                                    {v.outcome === "win" ? `Win ${gbp(v.awardGbp)}` : "Lose"}
-                                  </Pill>
-                                  {idx === 0 && <ArrowRight className="size-3.5 text-muted-foreground" />}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Middle column: Recommendations */}
-            <Card>
+              {/* Middle column: Recommendations */}
+            <Card className="h-full">
               <CardHeader>
                 <CardTitle className="text-sm">Recommendations</CardTitle>
                 <CardDescription className="text-xs">Strategic next steps for your case</CardDescription>
@@ -328,17 +306,10 @@ export default function DashboardPage() {
                   <SnapshotRow label="Judge votes" value={`${tally.total} total`} />
                 </SnapshotGroup>
 
-                <Separator className="my-4" />
-
-                <div className="rounded-lg bg-muted/40 p-3.5">
-                  <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    <Users className="size-3.5" /> The verdict
-                  </div>
-                  <p className="text-sm leading-relaxed">{recommendation}</p>
-                </div>
               </CardContent>
             </Card>
-          </div>
+            </div>
+          </>
         ) : (
           <div className="mx-auto flex max-w-3xl flex-col gap-3">
             <div className="mb-1">
@@ -354,6 +325,15 @@ export default function DashboardPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function HeroStat({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
+  return (
+    <div className="rounded-lg border bg-muted/30 px-3 py-2 text-center sm:min-w-24">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className={cn("mt-0.5 font-heading text-lg tracking-tight tabular-nums", valueClass)}>{value}</p>
+    </div>
   );
 }
 
