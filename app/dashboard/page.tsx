@@ -255,7 +255,7 @@ export default function DashboardPage() {
             </Card>
 
             {/* Right column: Snapshot */}
-            <Card>
+            <Card className="h-full">
               <CardHeader>
                 <CardTitle className="text-sm">Case Snapshot</CardTitle>
                 <CardDescription className="text-xs">Key figures from your simulation</CardDescription>
