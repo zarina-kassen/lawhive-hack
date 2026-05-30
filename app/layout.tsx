@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Employment Dispute Reality Check",
-  description: "Hackathon MVP for simulating UK Employment Tribunal outcomes.",
+  title: "Tribunal Navigator",
+  description: "Simulate UK Employment Tribunal outcomes and turn them into practical next steps.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

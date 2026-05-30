@@ -4,11 +4,16 @@ The shared language for this project. This file is a glossary, not a spec.
 Terms are canonical: if code or conversation uses a word, it should mean what
 is written here.
 
-Domain: a tool that estimates an employee's likely outcome in a UK employment
-dispute by simulating how different judges, reasoning from real Employment
-Tribunal decisions, would rule on their situation.
+Domain: Tribunal Navigator, a tool that helps an employee understand and act on
+a UK employment dispute by simulating how different judges, reasoning from real
+Employment Tribunal decisions, would rule on their situation.
 
 ## Glossary
+
+### Tribunal Navigator
+The product: a guided assessment for UK employment disputes that combines judge
+simulation, practical risk analysis, and recommended next steps.
+_Avoid_: Reality Check, Reality Desk
 
 ### Precedent Case
 A single real UK **Employment Tribunal (ET) decision** in our cleaned dataset
@@ -85,10 +90,10 @@ Debates → N verdicts → an aggregate distribution (P(win), P(lose), E[award �
 Scope: **N = 5 for the MVP**, architected to scale to **N = 50**.
 
 ### Intake
-A **live conversational survey chat** (no hardcoded scenario): the user
-describes their situation in free text; the chatbot asks follow-up questions and
-tells them which documents to upload; the user uploads documents; the chatbot
-then **assembles the case** and triggers the analysis. Fully dynamic end-to-end.
+The first user-facing stage: a **live conversational survey chat** (no hardcoded
+scenario) where the user describes their situation in free text, answers
+follow-up questions, and uploads documents. Intake assembles the case and
+triggers the Simulation.
 
 - **Source of truth = the chat.** The structured situation comes from what the
   user types/answers.
@@ -97,17 +102,23 @@ then **assembles the case** and triggers the analysis. Fully dynamic end-to-end.
 - The demo is run on **live, rehearsed input** — the system is real end-to-end,
   nothing is hardcoded.
 
+### Results
+The second user-facing stage: the explanation of a completed Simulation. Results
+show Case Merit, Practical Impact, the Strategic Recommendation, the Action Plan,
+and the visualisations that support them.
+
 ### Case Merit
 Pure **legal strength** of the user's situation: P(win) / P(lose) and expected
 award £, derived from aggregating Debate verdicts. Answers *"would a tribunal
 rule for you?"* — and ONLY that. Deliberately kept separate from Reality Cost.
 
-### Reality Cost
+### Practical Impact
 Everything that is true **regardless of whether you win**: time-to-resolution
 (often 1-2+ years; derivable from real dates in the ET data), money you won't
 recover (UK ET normally awards **no costs** — each side bears their own, so even
 winners are out of pocket), and the **emotional / attrition toll**. These are
 the "weighted non-deterministic" variables that change over time and per person.
+_Avoid_: Reality Cost
 
 > **Data note:** award £, time-to-resolution, and reasoning text are **NOT in
 > `judges.json`** (fast-pass). We **pre-enrich** each case with **realistic
@@ -115,11 +126,18 @@ the "weighted non-deterministic" variables that change over time and per person.
 > in real UK ET norms (statutory caps, typical median awards, realistic
 > timelines). Synthetic but believable; clearly flagged as such internally.
 
-### Worth-It Verdict
-The synthesis of Case Merit and Reality Cost. Answers *"even if you'd win,
+### Strategic Recommendation
+The synthesis of Case Merit and Practical Impact. Answers *"even if you'd win,
 should you pursue this?"* — the reality check no one gives employees. Core
 product thesis: **a "win" is often a net loss** (money, ~2 years, mental health),
 and many claimants **abandon mid-case** because they can't bear the toll.
+_Avoid_: Worth-It Verdict
+
+### Action Plan
+Recommended next steps for the employee after a Simulation, grounded in Case
+Merit and Practical Impact. Examples include evidence to gather, documents to
+organise, settlement leverage to test, deadlines to check, or whether to pause
+before escalating.
 
 ### Resilience Profile
 A per-user estimate of **financial runway** and **emotional resilience**, and
