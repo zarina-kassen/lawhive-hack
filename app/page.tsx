@@ -65,7 +65,7 @@ export default function IntakePage() {
         createdAt: new Date().toISOString(),
       })
     );
-    router.push("/dashboard");
+    router.push("/processing");
   }
 
   return (
