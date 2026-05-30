@@ -1,5 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { generateObject } from "ai";
+import { generateText } from "ai";
 import { z } from "zod";
 
 import { getCaseIndex, type EnrichedCaseRecord, type JudgeProfile } from "./judges";
@@ -226,11 +226,26 @@ function formatCaseForPrompt(label: string, caseRecord: EnrichedCaseRecord): str
   }`;
 }
 
+function extractJsonObject(text: string): unknown {
+  const fencedJson = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const candidate = fencedJson?.[1] ?? text;
+  const start = candidate.indexOf("{");
+  const end = candidate.lastIndexOf("}");
+
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error("Claude response did not contain a JSON object.");
+  }
+
+  return JSON.parse(candidate.slice(start, end + 1));
+}
+
 async function runDebate(pair: DebatePair, caseContext: string, debateIndex: number): Promise<SimulationDebate> {
   const prompt = [
     "You are simulating a UK Employment Tribunal debate for a hackathon product.",
     "Use the two named real judge profiles and their anchor cases. Do not invent statutes or claim certainty.",
     "Produce a concise adversarial exchange and two separate final votes.",
+    "Return only valid JSON. Do not include Markdown, prose outside JSON, or fenced code blocks.",
+    "The JSON shape must be: {\"transcript\":[{\"speaker\":\"strict|lenient\",\"message\":\"string\"}],\"strictVote\":{\"outcome\":\"win|lose\",\"awardGbp\":0,\"confidence\":0.5,\"keyReason\":\"string\"},\"lenientVote\":{\"outcome\":\"win|lose\",\"awardGbp\":0,\"confidence\":0.5,\"keyReason\":\"string\"}}.",
     "",
     `Employee situation: ${caseContext}`,
     "",
@@ -241,11 +256,12 @@ async function runDebate(pair: DebatePair, caseContext: string, debateIndex: num
     formatCaseForPrompt("Lenient judge anchor case", pair.lenientCase),
   ].join("\n");
 
-  const { object } = await generateObject({
+  const { text } = await generateText({
     model: getModel(),
-    schema: debateSchema,
+    maxOutputTokens: 1_500,
     prompt,
   });
+  const object = debateSchema.parse(extractJsonObject(text));
 
   return {
     id: `debate-${debateIndex + 1}`,
