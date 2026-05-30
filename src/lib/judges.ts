@@ -1,142 +1,198 @@
 import { readFile } from "node:fs/promises";
-import path from "node:path";
 
-import { enrichCase, isMeritsOutcome, type EnrichedCase } from "./enrichment";
+import { enrichCase } from "./enrichment";
 
-export type CaseOutcome = "claimant_won" | "dismissed" | "partly_upheld" | "withdrawn" | "unclear";
+export type TribunalOutcome = "claimant_won" | "dismissed" | "partly_upheld" | "withdrawn" | "unclear";
 
-export type PrecedentCase = {
+export type CaseRecord = {
   case_number: string;
-  claimant: string;
-  respondent: string;
+  claimant: string | null;
+  respondent: string | null;
   judge_name: string | null;
-  judge_raw: string | null;
+  judge_raw?: string | null;
   decision_date: string;
-  country: string;
+  country?: string;
   jurisdiction: string[];
   judgment_type: string;
-  panel_type: string;
-  outcome: CaseOutcome;
-  outcome_method: string;
-  needs_outcome_llm: boolean;
-  word_count: number;
-  files: Array<{ filename: string; size_kb: number }>;
-  total_size_kb: number;
-  needs_deep_pass: boolean;
-  source_link: string;
-  schema_version: string;
-  year_folder: string;
+  panel_type?: string;
+  outcome: TribunalOutcome;
+  source_link?: string;
+  enrichment?: {
+    synthetic: true;
+    award_gbp: number;
+    months_to_resolution: number;
+    reasoning_blurb: string;
+  };
 };
 
-export type JudgeSummary = {
-  n_cases: number;
-  n_final_merits: number;
-  profile_reliable: boolean;
-  claimant_success_rate_final: number;
-  outcomes_final_merits: Record<string, number>;
-  judgment_types: Record<string, number>;
-  top_jurisdictions: Record<string, number>;
-  date_range: [string, string];
-};
-
-type RawJudgesFile = {
-  meta: Record<string, unknown>;
-  judges: Record<string, { summary: JudgeSummary; cases: PrecedentCase[] }>;
+export type EnrichedCaseRecord = CaseRecord & {
+  enrichment: {
+    synthetic: true;
+    award_gbp: number;
+    months_to_resolution: number;
+    reasoning_blurb: string;
+  };
 };
 
 export type JudgeProfile = {
   name: string;
-  disposition: "strict" | "lenient";
-  summary: JudgeSummary;
-  cases: EnrichedCase[];
+  nFinalMerits: number;
+  claimantSuccessRateFinal: number;
+  topJurisdictions: string[];
+  cases: EnrichedCaseRecord[];
 };
 
 export type CaseIndex = {
-  meta: Record<string, unknown>;
+  cases: EnrichedCaseRecord[];
   judges: JudgeProfile[];
-  byJurisdiction: Map<string, EnrichedCase[]>;
-  jurisdictions: Array<{ id: string; count: number }>;
+  byJurisdiction: Map<string, EnrichedCaseRecord[]>;
+  jurisdictions: { id: string; count: number }[];
+};
+
+type RawJudgesFile = {
+  judges: Record<
+    string,
+    {
+      summary?: {
+        n_final_merits?: number;
+        profile_reliable?: boolean;
+        claimant_success_rate_final?: number;
+        top_jurisdictions?: Record<string, number>;
+      };
+      cases?: CaseRecord[];
+    }
+  >;
+};
+
+type EnrichedFile = {
+  cases: EnrichedCaseRecord[];
+  jurisdictions?: { id: string; count: number }[];
 };
 
 let cachedIndex: Promise<CaseIndex> | undefined;
 
-function judgeDisposition(successRate: number): JudgeProfile["disposition"] {
-  return successRate >= 0.5 ? "lenient" : "strict";
+async function readJsonFile<T>(fileUrl: URL): Promise<T | undefined> {
+  try {
+    const contents = await readFile(fileUrl, "utf8");
+    return JSON.parse(contents) as T;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+    throw error;
+  }
 }
 
-function normaliseCase(judgeName: string, caseRecord: PrecedentCase): PrecedentCase {
-  return {
-    ...caseRecord,
-    judge_name: caseRecord.judge_name ?? judgeName,
-    jurisdiction: Array.isArray(caseRecord.jurisdiction) ? caseRecord.jurisdiction : [],
-  };
+function isFinalMeritsCase(caseRecord: CaseRecord): boolean {
+  return caseRecord.judgment_type === "final_merits" && caseRecord.outcome !== "unclear";
 }
 
-async function readJudgesFile(): Promise<RawJudgesFile> {
-  const file = await readFile(path.join(process.cwd(), "judges.json"), "utf8");
-  return JSON.parse(file) as RawJudgesFile;
-}
+function buildJurisdictionIndex(cases: EnrichedCaseRecord[]): {
+  byJurisdiction: Map<string, EnrichedCaseRecord[]>;
+  jurisdictions: { id: string; count: number }[];
+} {
+  const byJurisdiction = new Map<string, EnrichedCaseRecord[]>();
 
-async function buildIndex(): Promise<CaseIndex> {
-  const raw = await readJudgesFile();
-  const byJurisdiction = new Map<string, EnrichedCase[]>();
-  const judges: JudgeProfile[] = [];
-
-  for (const [name, profile] of Object.entries(raw.judges)) {
-    const summary = profile.summary;
-
-    if (name === "UNKNOWN" || !summary.profile_reliable || summary.n_final_merits < 5) {
-      continue;
-    }
-
-    const cases = profile.cases
-      .map((caseRecord) => normaliseCase(name, caseRecord))
-      .filter((caseRecord) => caseRecord.judgment_type === "final_merits")
-      .filter((caseRecord) => isMeritsOutcome(caseRecord.outcome))
-      .map(enrichCase);
-
-    if (cases.length === 0) {
-      continue;
-    }
-
-    judges.push({
-      name,
-      disposition: judgeDisposition(summary.claimant_success_rate_final),
-      summary,
-      cases,
-    });
-
-    for (const caseRecord of cases) {
-      for (const jurisdiction of caseRecord.jurisdiction) {
-        const bucket = byJurisdiction.get(jurisdiction) ?? [];
-        bucket.push(caseRecord);
-        byJurisdiction.set(jurisdiction, bucket);
-      }
+  for (const caseRecord of cases) {
+    for (const jurisdiction of caseRecord.jurisdiction) {
+      byJurisdiction.set(jurisdiction, [...(byJurisdiction.get(jurisdiction) ?? []), caseRecord]);
     }
   }
 
   const jurisdictions = Array.from(byJurisdiction.entries())
-    .map(([id, cases]) => ({ id, count: cases.length }))
-    .sort((a, b) => b.count - a.count);
+    .map(([id, records]) => ({ id, count: records.length }))
+    .sort((left, right) => right.count - left.count);
 
-  judges.sort((a, b) => a.summary.claimant_success_rate_final - b.summary.claimant_success_rate_final);
+  return { byJurisdiction, jurisdictions };
+}
+
+function deriveProfiles(cases: EnrichedCaseRecord[]): JudgeProfile[] {
+  const casesByJudge = new Map<string, EnrichedCaseRecord[]>();
+
+  for (const caseRecord of cases) {
+    if (!caseRecord.judge_name) continue;
+    casesByJudge.set(caseRecord.judge_name, [...(casesByJudge.get(caseRecord.judge_name) ?? []), caseRecord]);
+  }
+
+  return Array.from(casesByJudge.entries())
+    .map(([name, judgeCases]) => {
+      const claimantWins = judgeCases.filter(
+        (caseRecord) => caseRecord.outcome === "claimant_won" || caseRecord.outcome === "partly_upheld",
+      ).length;
+      const jurisdictionCounts = new Map<string, number>();
+
+      for (const caseRecord of judgeCases) {
+        for (const jurisdiction of caseRecord.jurisdiction) {
+          jurisdictionCounts.set(jurisdiction, (jurisdictionCounts.get(jurisdiction) ?? 0) + 1);
+        }
+      }
+
+      return {
+        name,
+        nFinalMerits: judgeCases.length,
+        claimantSuccessRateFinal: claimantWins / judgeCases.length,
+        topJurisdictions: Array.from(jurisdictionCounts.entries())
+          .sort((left, right) => right[1] - left[1])
+          .slice(0, 5)
+          .map(([jurisdiction]) => jurisdiction),
+        cases: judgeCases,
+      };
+    })
+    .filter((profile) => profile.nFinalMerits >= 5)
+    .sort((left, right) => left.claimantSuccessRateFinal - right.claimantSuccessRateFinal);
+}
+
+function buildIndexFromEnrichedFile(enrichedFile: EnrichedFile): CaseIndex {
+  const cases = enrichedFile.cases.filter(isFinalMeritsCase);
+  const { byJurisdiction, jurisdictions } = buildJurisdictionIndex(cases);
 
   return {
-    meta: raw.meta,
-    judges,
+    cases,
+    judges: deriveProfiles(cases),
+    byJurisdiction,
+    jurisdictions: enrichedFile.jurisdictions ?? jurisdictions,
+  };
+}
+
+function buildIndexFromRawFile(rawFile: RawJudgesFile): CaseIndex {
+  const judges: JudgeProfile[] = [];
+  const cases: EnrichedCaseRecord[] = [];
+
+  for (const [name, judge] of Object.entries(rawFile.judges)) {
+    const summary = judge.summary;
+    if (!summary?.profile_reliable || name === "UNKNOWN") continue;
+
+    const judgeCases = (judge.cases ?? []).filter(isFinalMeritsCase).map(enrichCase);
+    if (judgeCases.length === 0) continue;
+
+    cases.push(...judgeCases);
+    judges.push({
+      name,
+      nFinalMerits: summary.n_final_merits ?? judgeCases.length,
+      claimantSuccessRateFinal: summary.claimant_success_rate_final ?? 0.5,
+      topJurisdictions: Object.keys(summary.top_jurisdictions ?? {}),
+      cases: judgeCases,
+    });
+  }
+
+  const { byJurisdiction, jurisdictions } = buildJurisdictionIndex(cases);
+
+  return {
+    cases,
+    judges: judges.sort((left, right) => left.claimantSuccessRateFinal - right.claimantSuccessRateFinal),
     byJurisdiction,
     jurisdictions,
   };
 }
 
 export function getCaseIndex(): Promise<CaseIndex> {
-  cachedIndex ??= buildIndex();
-  return cachedIndex;
-}
+  cachedIndex ??= (async () => {
+    const rawFile = await readJsonFile<RawJudgesFile>(new URL("../../judges.json", import.meta.url));
+    if (rawFile) return buildIndexFromRawFile(rawFile);
 
-export function formatJurisdiction(id: string): string {
-  return id
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+    const enrichedFile = await readJsonFile<EnrichedFile>(new URL("../../enriched.json", import.meta.url));
+    if (enrichedFile) return buildIndexFromEnrichedFile(enrichedFile);
+
+    throw new Error("No tribunal case data found. Run `npm run enrich` or add `judges.json`.");
+  })();
+
+  return cachedIndex;
 }

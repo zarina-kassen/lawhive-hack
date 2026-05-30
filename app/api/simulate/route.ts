@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "The real Opus simulation failed.";
+    console.error("Simulation failed", error);
 
     return NextResponse.json({ error: message }, { status: 502 });
   }

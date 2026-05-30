@@ -1,126 +1,73 @@
-import { createHash } from "node:crypto";
+import type { CaseRecord, EnrichedCaseRecord } from "./judges";
 
-import type { CaseOutcome, PrecedentCase } from "./judges";
+function stableNumber(input: string, modulo: number): number {
+  let hash = 0;
 
-export type EnrichedCase = PrecedentCase & {
-  enrichment: {
-    synthetic: true;
-    award_gbp: number;
-    months_to_resolution: number;
-    reasoning_blurb: string;
-  };
-};
+  for (let index = 0; index < input.length; index += 1) {
+    hash = (hash * 31 + input.charCodeAt(index)) >>> 0;
+  }
 
-const DISCRIMINATION_TAGS = [
-  "disability-discrimination",
-  "race-discrimination",
-  "sex-discrimination",
-  "age-discrimination",
-  "religion-or-belief-discrimination",
-  "victimisation-discrimination",
-  "sexual-orientation-discrimination-transexualism",
-];
-
-function hashRatio(seed: string): number {
-  const digest = createHash("sha256").update(seed).digest("hex").slice(0, 8);
-  return Number.parseInt(digest, 16) / 0xffffffff;
+  return hash % modulo;
 }
 
-function includesAny(values: string[], candidates: string[]): boolean {
-  return candidates.some((candidate) => values.includes(candidate));
+function hasJurisdiction(caseRecord: CaseRecord, fragment: string): boolean {
+  return caseRecord.jurisdiction.some((jurisdiction) => jurisdiction.includes(fragment));
 }
 
-function awardBand(caseRecord: PrecedentCase): [number, number] {
-  const jurisdictions = caseRecord.jurisdiction;
+function awardBand(caseRecord: CaseRecord): [number, number] {
+  if (caseRecord.outcome === "dismissed" || caseRecord.outcome === "withdrawn") return [0, 0];
 
-  if (caseRecord.outcome === "dismissed" || caseRecord.outcome === "withdrawn") {
-    return [0, 0];
-  }
+  if (hasJurisdiction(caseRecord, "discrimination")) return [8_000, 45_000];
+  if (hasJurisdiction(caseRecord, "unfair-dismissal")) return [4_000, 22_000];
+  if (hasJurisdiction(caseRecord, "redundancy")) return [2_000, 14_000];
+  if (hasJurisdiction(caseRecord, "wages") || hasJurisdiction(caseRecord, "contract")) return [750, 8_000];
 
-  if (includesAny(jurisdictions, DISCRIMINATION_TAGS)) {
-    return caseRecord.outcome === "partly_upheld" ? [2_500, 18_000] : [8_000, 65_000];
-  }
-
-  if (jurisdictions.includes("unfair-dismissal")) {
-    return caseRecord.outcome === "partly_upheld" ? [1_500, 10_000] : [5_000, 28_000];
-  }
-
-  if (
-    jurisdictions.includes("unlawful-deduction-from-wages") ||
-    jurisdictions.includes("working-time-regulations") ||
-    jurisdictions.includes("breach-of-contract")
-  ) {
-    return caseRecord.outcome === "partly_upheld" ? [300, 3_500] : [900, 9_000];
-  }
-
-  if (jurisdictions.includes("redundancy")) {
-    return caseRecord.outcome === "partly_upheld" ? [1_000, 7_500] : [4_000, 22_000];
-  }
-
-  return caseRecord.outcome === "partly_upheld" ? [750, 6_000] : [2_500, 18_000];
+  return [1_000, 12_000];
 }
 
-function resolutionBand(caseRecord: PrecedentCase): [number, number] {
-  const jurisdictions = caseRecord.jurisdiction;
+function estimateAward(caseRecord: CaseRecord): number {
+  const [min, max] = awardBand(caseRecord);
+  if (max === 0) return 0;
 
-  if (includesAny(jurisdictions, DISCRIMINATION_TAGS) || caseRecord.panel_type === "full_panel") {
-    return [14, 28];
-  }
+  const spread = max - min;
+  const amount = min + stableNumber(caseRecord.case_number, spread + 1);
 
-  if (caseRecord.judgment_type === "strike_out") {
-    return [4, 10];
-  }
-
-  if (jurisdictions.includes("unfair-dismissal") || jurisdictions.includes("public-interest-disclosure")) {
-    return [10, 24];
-  }
-
-  return [6, 18];
+  return caseRecord.outcome === "partly_upheld" ? Math.round(amount * 0.55) : amount;
 }
 
-function scaledInteger(seed: string, min: number, max: number): number {
-  if (min === max) {
-    return min;
-  }
+function estimateMonths(caseRecord: CaseRecord): number {
+  const base = hasJurisdiction(caseRecord, "discrimination") ? 14 : 8;
+  const panelDelay = caseRecord.panel_type === "full_panel" ? 4 : 0;
 
-  return Math.round(min + hashRatio(seed) * (max - min));
+  return base + panelDelay + stableNumber(`${caseRecord.case_number}-months`, 9);
 }
 
-function reasoningBlurb(caseRecord: PrecedentCase): string {
-  const mainClaim = caseRecord.jurisdiction[0]?.replaceAll("-", " ") ?? "employment";
-  const claimant = caseRecord.claimant || "the claimant";
-  const respondent = caseRecord.respondent || "the respondent";
+function buildReasoningBlurb(caseRecord: CaseRecord): string {
+  const claimant = caseRecord.claimant ?? "the claimant";
+  const respondent = caseRecord.respondent ?? "the respondent";
+  const claimType = caseRecord.jurisdiction[0]?.replaceAll("-", " ") ?? "employment";
 
   if (caseRecord.outcome === "claimant_won") {
-    return `The tribunal accepted ${claimant}'s core ${mainClaim} allegations and found ${respondent}'s explanation did not displace the claimant's account.`;
+    return `The tribunal accepted ${claimant}'s core ${claimType} allegations and found ${respondent}'s explanation did not displace the claimant's account.`;
   }
 
   if (caseRecord.outcome === "partly_upheld") {
-    return `The tribunal accepted part of the ${mainClaim} case but rejected wider allegations or limited the remedy to the proven loss.`;
+    return `The tribunal accepted part of the ${claimType} case but rejected wider allegations or limited the remedy to the proven loss.`;
   }
 
-  if (caseRecord.outcome === "dismissed") {
-    return `The tribunal dismissed the ${mainClaim} claim because the evidence did not meet the legal threshold or the respondent's reason was preferred.`;
-  }
-
-  return `The published result was unclear in the fast-pass data, so this case should only be used as a weak analogy.`;
+  return `The tribunal preferred ${respondent}'s explanation or found the evidence did not meet the threshold for the ${claimType} claim.`;
 }
 
-export function enrichCase(caseRecord: PrecedentCase): EnrichedCase {
-  const [awardMin, awardMax] = awardBand(caseRecord);
-  const [monthsMin, monthsMax] = resolutionBand(caseRecord);
+export function enrichCase(caseRecord: CaseRecord): EnrichedCaseRecord {
+  if (caseRecord.enrichment) return caseRecord as EnrichedCaseRecord;
 
   return {
     ...caseRecord,
     enrichment: {
       synthetic: true,
-      award_gbp: scaledInteger(`${caseRecord.case_number}:award`, awardMin, awardMax),
-      months_to_resolution: scaledInteger(`${caseRecord.case_number}:months`, monthsMin, monthsMax),
-      reasoning_blurb: reasoningBlurb(caseRecord),
+      award_gbp: estimateAward(caseRecord),
+      months_to_resolution: estimateMonths(caseRecord),
+      reasoning_blurb: buildReasoningBlurb(caseRecord),
     },
   };
-}
-
-export function isMeritsOutcome(outcome: CaseOutcome): boolean {
-  return outcome === "claimant_won" || outcome === "partly_upheld" || outcome === "dismissed";
 }
